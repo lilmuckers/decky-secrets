@@ -35,7 +35,8 @@ Some items below are settled decisions for the MVP. Others are explicit open ass
 ### D-006: Default record interaction copies the password
 - Selecting a record copies its password to the clipboard by default.
 - View, edit, and delete actions are secondary explicit actions.
-- Reason: the dominant user job is quick password retrieval during a live session.
+- A local CLI tool may also add records directly into the vault for technical users working over shell or SSH.
+- Reason: the dominant user job is quick password retrieval during a live session, while power users still need a practical path for entering large or complex secrets.
 
 ### D-007: Clipboard clearing is mandatory
 - Copied clipboard contents are blanked after a timeout.

@@ -39,9 +39,11 @@ The MVP vault security baseline is:
    - Master-password changes require either the current password or the recovery key.
    - PIN changes require the master password.
 
-5. **Frontend and clipboard behavior**
+5. **Frontend, CLI, and clipboard behavior**
    - The frontend may receive decrypted private values only for explicit viewing or copy-to-clipboard actions.
-   - Secret values remain masked by default.
+   - A local CLI tool may add secrets directly into the same vault for shell and SSH-based workflows.
+   - The CLI uses the same vault format, backend validation rules, and lock requirements as the UI path.
+   - Secret values remain masked by default in the UI.
    - Reveal and copy actions require explicit user intent.
    - Clipboard auto-clear is required and defaults to **30 seconds**.
 
@@ -56,12 +58,14 @@ The MVP vault security baseline is:
 - Keeping the vault PIN-encrypted in memory addresses the stated product requirement to avoid long-lived plaintext process memory between accesses.
 - Making the PIN required simplifies the security model and avoids an optional branch that would otherwise leave plaintext in memory.
 - Recovery must exist for password changes, but storing the recovery key on-device would undercut its purpose.
+- A CLI ingest path supports technical users who need to move large or complex secrets over SSH without broadening the storage or trust model.
 - Failure throttling should be on by default, while destructive deletion should be opt-in to avoid surprising users.
 
 ## Consequences
 - Product docs must now describe the PIN as required for session access, not optional.
 - Implementation planning must include whole-vault in-memory re-wrap behavior and memory zeroization.
 - UI work must show masked-by-default secrets, explicit reveal/copy controls, and a warninged opt-in destructive-failure option.
+- Implementation planning must include a CLI add-secret path that uses the same backend and vault semantics as the UI.
 - Builder readiness still depends on selecting concrete libraries and finalizing the vault file schema.
 
 ## Rejected alternative

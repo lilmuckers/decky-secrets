@@ -24,6 +24,13 @@ Each vault record stores:
 
 The vault is expected to support multiple records.
 
+### Input surfaces
+The MVP supports two user-facing ways to add secrets:
+- the Decky plugin UI for normal handheld entry and management
+- a local CLI tool for adding secrets directly into the vault, primarily for technical users who want to paste large or complex secrets over SSH
+
+The CLI is an additional vault-ingest surface, not a separate storage path or alternate trust model.
+
 ### Encryption model
 - The vault must be cryptographically protected at rest as a single encrypted blob.
 - Use **AES-256-GCM** for vault encryption.
@@ -87,6 +94,11 @@ A separate affordance should allow the user to:
 
 This keeps the common login flow fast while still allowing management operations.
 
+### CLI ingest expectations
+- The CLI should use the same vault format, backend validation rules, and lock/unlock requirements as the UI path.
+- The CLI is intended for local shell usage, including SSH sessions into the device.
+- The initial CLI scope is limited to adding secrets; broader command-line vault management is not required for the MVP.
+
 ## Future biometric extension
 A future feature may allow a fingerprint sensor, when enabled on the device, to satisfy the access gate.
 
@@ -99,16 +111,16 @@ Current architectural implication:
 The MVP security stance is:
 - encrypted at rest is mandatory
 - password-based decrypt is mandatory after boot and after full relock
-- PIN is optional and additive, not substitutive
+- PIN is required and additive, not substitutive
 - clipboard exposure is time-bounded and minimized, not eliminated
 - local-only storage is mandatory
 - secret values remain hidden by default outside intentional view/copy actions
+- CLI-based secret entry is allowed only as another local device path, including over user-controlled SSH access
 
 ## Runtime state model
 At minimum, implementation planning should distinguish these states:
 - uninitialized vault
 - locked, decrypt required
-- unlocked, no secondary gate configured
 - unlocked, PIN gate active and currently locked
 - unlocked and accessible
 - relocking / timeout transition

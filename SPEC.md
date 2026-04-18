@@ -19,6 +19,7 @@ This file is the concise in-repo entrypoint. Deeper product and architecture con
   - password-based decrypt on first unlock after boot and after full relock
   - required secondary PIN gate for access during a running session after password unlock
   - Decky plugin UI for listing, adding, editing, deleting, viewing, and copying secrets
+  - a CLI tool for adding secrets directly into the local vault, intended for technical users moving large or complex secrets over SSH
   - record fields for name, username, password, and multiple notes
   - clipboard / pasteboard copy action for a selected secret, with password copy as the default record action
   - automatic clipboard clearing after a short, configurable timeout, defaulting to 30 seconds
@@ -46,7 +47,8 @@ Secondary flows:
 - first-time vault setup with recovery-key generation
 - change master password with current password or recovery key
 - change PIN with master password
-- add/edit/delete a vault entry
+- add/edit/delete a vault entry in the Decky UI
+- add a vault entry from the CLI over a shell or SSH session
 - inspect a record in detail, including notes
 - relock the vault manually
 
@@ -85,6 +87,7 @@ Top-level success conditions for the first useful version:
 - The PIN is numeric only, 4 to 6 digits, and its key is derived with PBKDF2-SHA-256 at 200,000 iterations using a separate random salt.
 - The whole vault is decrypted only briefly per active operation, then re-encrypted in memory with the PIN-derived key and plaintext memory is zeroed.
 - User can create, edit, view, and delete records containing name, username, password, and multiple notes.
+- User can add records from a local CLI tool without needing the Decky UI, to support shell and SSH-based entry of large or complex secrets.
 - Selecting a record copies its password to the pasteboard by default.
 - Copied password is automatically cleared from the pasteboard after a configurable timeout with a default of 30 seconds.
 - Locked state prevents secret browsing and copying until the required password or PIN step has succeeded.

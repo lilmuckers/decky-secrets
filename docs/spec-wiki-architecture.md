@@ -44,6 +44,35 @@ The CLI is an additional local-management surface, not a separate storage path o
 - The password-based unlock path is the root decrypt capability for the MVP.
 - Recommended blob shape: a small header with version, KDF metadata, nonce, and ciphertext, with secret-bearing data kept inside the encrypted payload.
 
+### Best-guess vault blob schema
+A good MVP best-guess schema is:
+
+Cleartext header:
+- `magic`: fixed format marker, for example `DSV1`
+- `version`: integer format version, initially `1`
+- `kdf`: `{ algorithm, iterations, salt_b64 }`
+- `cipher`: `{ algorithm, nonce_b64 }`
+- `ciphertext_b64`: encrypted payload including GCM authentication tag
+
+Encrypted payload:
+- `vault`: `{ created_at, updated_at }`
+- `pin`: `{ value, kdf: { algorithm, iterations, salt_b64 } }`
+- `records`: array of objects shaped like:
+  - `key`: stable unique record identifier used by the CLI
+  - `name`: user-facing display name
+  - `username`: optional username
+  - `secret`: the stored password or secret value
+  - `notes`: string array
+  - `created_at`: timestamp
+  - `updated_at`: timestamp
+- `settings`: secret-sensitive internal values only when they truly need to live inside the encrypted payload
+
+Best-guess defaults:
+- store salts, nonces, and ciphertext using base64 encoding in the serialized format
+- store timestamps as UTC ISO-8601 strings
+- use `key` as the canonical CLI identifier and require uniqueness within the vault
+- keep non-secret UX configuration outside the encrypted payload unless it materially affects security behavior
+
 ### Session unlock model
 The MVP has two distinct gates:
 
@@ -110,6 +139,22 @@ This keeps the common login flow fast while still allowing management operations
 - The CLI may support `--username` where relevant for record creation or update.
 - Other CLI behavior is best-effort for MVP and should be documented as expectations rather than hard guarantees.
 
+### Best-guess CLI authentication and failure behavior
+- If the vault is fully locked, the CLI should prompt for the **master password** using non-echo terminal input.
+- If the vault is not fully locked but is in the PIN-encrypted session state, the CLI should prompt for the **PIN** using non-echo terminal input.
+- If `stdin` is already reserved for `--secret-stdin`, authentication prompts should read from `/dev/tty` when available rather than consuming piped secret input.
+- If no interactive terminal is available and required authentication input was not provided through an approved mechanism, the command should fail cleanly with a clear message rather than falling back to insecure prompt behavior.
+- Failed CLI authentication attempts should count toward the same password/PIN/recovery-key rate limits as UI attempts.
+- On rate-limit hit, the CLI should exit non-zero and report that authentication is temporarily blocked.
+- Best-guess exit behavior:
+  - `0` for success
+  - non-zero for validation errors, auth failures, lockouts, missing records, duplicate keys, or I/O failures
+- Best-guess user-facing failure cases:
+  - duplicate `--key` on `add` should fail and instruct the user to use `update`
+  - unknown `--key` on `rm` or `update` should fail clearly
+  - supplying both `--secret` and `--secret-stdin` should fail as invalid usage
+  - omitted required arguments should produce help text and non-zero exit
+
 ## Future biometric extension
 A future feature may allow a fingerprint sensor, when enabled on the device, to satisfy the access gate.
 
@@ -166,11 +211,10 @@ The MVP needs three configurable timers:
 
 ## Open architecture questions
 These are intentionally still open and should be resolved before implementation is marked ready:
-- exact file format versioning and metadata layout for `~/.decky-secrets/vault`
 - how inactivity is detected for the 1-minute session access window and 6-hour full relock
 - how notes are represented and bounded in the record model
 - what guarantees are realistic for clipboard clearing under SteamOS and Decky runtime constraints
-- exact CLI authentication prompts and failure behavior
+- whether any non-interactive CLI auth path is needed beyond the MVP best-guess interactive model
 
 ## Recommended delivery order
 1. finalize architecture and threat model

@@ -20,6 +20,7 @@ The MVP vault security baseline is:
    - Use a fresh standard **96-bit AES-GCM nonce** for each encryption operation.
    - Recommended default salt size is 16 bytes.
    - Recommended blob shape is a minimal header with version, KDF metadata, nonce, and ciphertext, with secret-bearing data inside the encrypted payload.
+   - Best-guess payload structure: vault timestamps, PIN value and KDF metadata, and a record array where each record has `key`, `name`, optional `username`, `secret`, `notes`, and timestamps.
 
 2. **In-memory handling**
    - The Python backend owns all cryptographic enforcement.
@@ -51,6 +52,10 @@ The MVP vault security baseline is:
    - MVP CLI commands are `add`, `list`, `rm`, and `update`.
    - Secret input should work via `--secret` or `--secret-stdin`.
    - `--username` may be supported where relevant.
+   - If the vault is fully locked, the CLI should prompt for the master password using non-echo terminal input.
+   - If the vault is session-locked, the CLI should prompt for the PIN using non-echo terminal input.
+   - If `--secret-stdin` is in use, prompts should read from `/dev/tty` when available.
+   - If secure prompting is not possible, the CLI should fail cleanly rather than consume piped secret input or echo secrets.
    - Secret values remain masked by default in the UI.
    - Reveal and copy actions require explicit user intent.
    - Clipboard auto-clear is required and defaults to **30 seconds**.
@@ -68,6 +73,7 @@ The MVP vault security baseline is:
 - Recovery must exist for password changes, but storing the recovery key on-device would undercut its purpose.
 - A CLI path supports technical users who need to move large or complex secrets over SSH without broadening the storage or trust model.
 - `--secret-stdin` reduces shell-history and quoting problems for CLI secret entry.
+- Interactive `/dev/tty` prompting is the safest best-guess CLI auth behavior for MVP shell and SSH use.
 - Failure throttling should be on by default, while destructive deletion should be opt-in to avoid surprising users.
 
 ## Consequences
@@ -75,7 +81,7 @@ The MVP vault security baseline is:
 - Implementation planning must include whole-vault in-memory re-wrap behavior and memory zeroization.
 - UI work must show masked-by-default secrets, explicit reveal/copy controls, and a warninged opt-in destructive-failure option.
 - Implementation planning must include a CLI path that uses the same backend and vault semantics as the UI.
-- Builder readiness still depends on finalizing the exact vault file schema and CLI authentication behavior.
+- Builder readiness still depends on validating the best-guess schema and deciding whether any non-interactive CLI auth path is needed.
 
 ## Rejected alternative
 - **Optional PIN with potentially persistent plaintext in memory:** rejected because the requirement set prioritized keeping the vault encrypted in memory at rest within the running session.

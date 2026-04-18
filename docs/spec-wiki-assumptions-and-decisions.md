@@ -85,6 +85,20 @@ Some items below are settled decisions for the MVP. Others are explicit open ass
 - Other CLI behavior is best-effort for MVP.
 - Reason: this covers the intended SSH and power-user workflow without turning the first release into a full terminal password manager.
 
+### D-014: The MVP best-guess vault schema is a versioned JSON blob with encrypted record payload
+- The cleartext header should contain the format marker, version, master-password KDF metadata, cipher metadata, and ciphertext.
+- The encrypted payload should contain vault timestamps, PIN data and KDF metadata, and the record array.
+- Each record should use a stable unique `key` field as the CLI identifier.
+- Reason: this is simple to serialize in Python, easy to migrate later, and matches the CLI and UI needs without premature complexity.
+
+### D-015: The MVP CLI auth model is interactive and conservative by default
+- Fully locked vault access prompts for the master password.
+- Session-locked vault access prompts for the PIN.
+- Prompts should use non-echo terminal input.
+- When `--secret-stdin` is in use, prompts should read from `/dev/tty` when available.
+- If secure interactive prompting is not possible, the CLI should fail rather than guess.
+- Reason: this minimizes secret leakage and avoids unsafe prompt behavior in shell and SSH workflows.
+
 ## Current assumptions to validate
 
 ### A-001: SteamOS / Decky can support the required crypto stack cleanly
@@ -117,10 +131,9 @@ Why it matters:
 
 ## Explicit non-decisions still open
 These are not settled yet:
-- exact vault file schema and migration strategy
 - maximum note size or record count expectations
 - whether clipboard clearing should blank to empty string, overwrite, or use the best mechanism available in the environment
-- exact CLI authentication prompts and failure behavior
+- whether any non-interactive CLI auth path is needed beyond the MVP interactive model
 
 ## Design implications for backlog refinement
 These decisions imply:
@@ -128,8 +141,10 @@ These decisions imply:
 - security investigation must treat clipboard exposure and in-memory accessible state as separate risks
 - plugin skeleton work should avoid hard-coding assumptions that prevent a second access-gate factor later
 - vault implementation work should assume `hashlib.pbkdf2_hmac`, `cryptography`, and `secrets`
+- vault persistence work should treat the best-guess JSON blob schema as the default starting point
 - copy flow work must describe clipboard wiping as configurable best-effort behavior
 - CLI work must support both direct secret arguments and stdin-based secret entry
+- CLI auth work should assume an interactive `/dev/tty` prompt model first
 
 ## Review trigger
 This page should be revised whenever any of the following change materially:

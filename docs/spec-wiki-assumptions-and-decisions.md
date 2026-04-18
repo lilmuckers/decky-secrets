@@ -21,11 +21,11 @@ Some items below are settled decisions for the MVP. Others are explicit open ass
 - A password is required again after full relock caused by timeout.
 - Reason: the project needs a strong primary secret and should not treat a short PIN as the sole basis for decrypting the vault.
 
-### D-004: PIN is optional and additive
-- Users may optionally enable a PIN gate after password unlock.
-- The PIN controls access to an already decrypted or decrypt-ready session state.
+### D-004: PIN is required and wraps session memory
+- A PIN gate is required after password unlock for session access.
+- The vault remains encrypted in memory under a PIN-derived key except during the shortest practical active operation window.
 - The PIN does not replace the password as the root vault unlock factor in MVP.
-- Reason: this preserves fast repeat access while keeping the password as the stronger primary secret.
+- Reason: this sidesteps the need to keep the vault plaintext in long-lived process memory while still supporting fast repeat access.
 
 ### D-005: Fingerprint support is future scope, not MVP scope
 - Biometric unlock is a future extension only.
@@ -39,15 +39,34 @@ Some items below are settled decisions for the MVP. Others are explicit open ass
 
 ### D-007: Clipboard clearing is mandatory
 - Copied clipboard contents are blanked after a timeout.
-- Default timeout is 20 seconds.
+- Default timeout is 30 seconds.
 - The timeout should remain configurable.
 - Reason: clipboard persistence is one of the most obvious exposure points in this product.
 
 ### D-008: Locked does not always mean decrypted state is gone
 - The product must distinguish between:
   - full lock, where password decrypt is required
-  - session lock, where a PIN gate blocks access to vault contents
+  - session lock, where a PIN gate blocks access to vault contents and the vault remains PIN-encrypted in memory
 - Reason: this matches the intended UX and creates a clean path for later biometric support.
+
+### D-009: The vault crypto profile is fixed for MVP
+- Encrypt the vault blob with AES-256-GCM.
+- Derive the master-password key with PBKDF2-SHA-256 at 600,000 iterations and a random salt.
+- Derive the PIN key with PBKDF2-SHA-256 at 200,000 iterations and a separate random salt.
+- Use a fresh standard 96-bit AES-GCM nonce per encryption operation.
+- Reason: this gives the MVP a concrete and reviewable cryptographic baseline.
+
+### D-010: Recovery key is user-held only
+- Recovery uses a 32-character base32 string grouped for readability.
+- The recovery key is not stored on the device.
+- Recovery-key authentication failures count toward the same failure counters as password and PIN failures.
+- Reason: recovery must remain available for password reset without weakening the device-local security posture.
+
+### D-011: Failure throttling is required, destructive lockout is opt-in
+- Combined authentication failures across password, PIN, and recovery key are rate-limited.
+- Default limits are 5 failures per minute and 20 failures per 10 minutes.
+- Delete-on-failure exists as an option, warns clearly, is off by default, and if enabled defaults to deleting the vault after 40 combined authentication failures.
+- Reason: the MVP should slow guessing attacks by default without surprising users with destructive behavior.
 
 ## Current assumptions to validate
 
@@ -67,7 +86,7 @@ Why it matters:
 
 ### A-003: A two-gate session model is understandable in the UI
 Assumption:
-- users can understand the distinction between password decrypt and optional PIN re-entry without the UX becoming confusing
+- users can understand the distinction between password decrypt and required PIN re-entry without the UX becoming confusing
 
 Why it matters:
 - if the model feels confusing, the architecture may need simplification before build
@@ -81,10 +100,9 @@ Why it matters:
 
 ## Explicit non-decisions still open
 These are not settled yet:
-- exact cryptographic algorithm and library selection
+- exact cryptographic library selection
 - exact vault file schema and migration strategy
-- vault relock default duration
-- whether PIN retry throttling or lockout is required in MVP
+- full-relock default duration beyond the 1-minute session access window
 - maximum note size or record count expectations
 - whether clipboard clearing should blank to empty string, overwrite, or use the best mechanism available in the environment
 

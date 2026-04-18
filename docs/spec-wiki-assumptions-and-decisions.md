@@ -50,12 +50,15 @@ Some items below are settled decisions for the MVP. Others are explicit open ass
   - session lock, where a PIN gate blocks access to vault contents and the vault remains PIN-encrypted in memory
 - Reason: this matches the intended UX and creates a clean path for later biometric support.
 
-### D-009: The vault crypto profile is fixed for MVP
+### D-009: The vault crypto profile and library stack are fixed for MVP
 - Encrypt the vault blob with AES-256-GCM.
+- Use Python `hashlib.pbkdf2_hmac` for PBKDF2-SHA-256 derivation.
+- Use the Python `cryptography` library for AES-GCM operations.
+- Use Python `secrets` for random salt, nonce, and recovery-key generation.
 - Derive the master-password key with PBKDF2-SHA-256 at 600,000 iterations and a random salt.
 - Derive the PIN key with PBKDF2-SHA-256 at 200,000 iterations and a separate random salt.
 - Use a fresh standard 96-bit AES-GCM nonce per encryption operation.
-- Reason: this gives the MVP a concrete and reviewable cryptographic baseline.
+- Reason: this gives the MVP a concrete and reviewable cryptographic baseline with an implementation path that fits Python cleanly.
 
 ### D-010: Recovery key is user-held only
 - Recovery uses a 32-character base32 string grouped for readability.
@@ -68,6 +71,19 @@ Some items below are settled decisions for the MVP. Others are explicit open ass
 - Default limits are 5 failures per minute and 20 failures per 10 minutes.
 - Delete-on-failure exists as an option, warns clearly, is off by default, and if enabled defaults to deleting the vault after 40 combined authentication failures.
 - Reason: the MVP should slow guessing attacks by default without surprising users with destructive behavior.
+
+### D-012: Full relock is configurable and defaults to 6 hours
+- The session access window remains 1 minute by default.
+- Full relock is a separate configurable timeout.
+- The default full relock timeout is 6 hours.
+- Reason: this preserves the fast session-gate model while still ensuring the vault eventually returns to password-only unlock.
+
+### D-013: The MVP CLI surface is explicit and minimal
+- The CLI supports `add`, `list`, `rm`, and `update` commands.
+- Secret input should work via `--secret` or `--secret-stdin`.
+- `--username` may be supported where relevant.
+- Other CLI behavior is best-effort for MVP.
+- Reason: this covers the intended SSH and power-user workflow without turning the first release into a full terminal password manager.
 
 ## Current assumptions to validate
 
@@ -101,19 +117,19 @@ Why it matters:
 
 ## Explicit non-decisions still open
 These are not settled yet:
-- exact cryptographic library selection
 - exact vault file schema and migration strategy
-- full-relock default duration beyond the 1-minute session access window
 - maximum note size or record count expectations
 - whether clipboard clearing should blank to empty string, overwrite, or use the best mechanism available in the environment
+- exact CLI authentication prompts and failure behavior
 
 ## Design implications for backlog refinement
 These decisions imply:
 - architecture work must cover both full-lock and session-lock states
 - security investigation must treat clipboard exposure and in-memory accessible state as separate risks
 - plugin skeleton work should avoid hard-coding assumptions that prevent a second access-gate factor later
-- vault implementation work is blocked on the crypto/runtime decision
+- vault implementation work should assume `hashlib.pbkdf2_hmac`, `cryptography`, and `secrets`
 - copy flow work must describe clipboard wiping as configurable best-effort behavior
+- CLI work must support both direct secret arguments and stdin-based secret entry
 
 ## Review trigger
 This page should be revised whenever any of the following change materially:

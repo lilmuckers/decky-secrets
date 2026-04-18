@@ -25,20 +25,24 @@ Each vault record stores:
 The vault is expected to support multiple records.
 
 ### Input surfaces
-The MVP supports two user-facing ways to add secrets:
+The MVP supports two user-facing ways to manage secrets:
 - the Decky plugin UI for normal handheld entry and management
-- a local CLI tool for adding secrets directly into the vault, primarily for technical users who want to paste large or complex secrets over SSH
+- a local CLI tool for adding, listing, removing, and updating secrets directly in the same vault, primarily for technical users who want to work over shell or SSH
 
-The CLI is an additional vault-ingest surface, not a separate storage path or alternate trust model.
+The CLI is an additional local-management surface, not a separate storage path or alternate trust model.
 
 ### Encryption model
-- The vault must be cryptographically protected at rest as a single encrypted blob.
+- The vault must be cryptographically protected at rest as a single versioned encrypted blob with minimal cleartext metadata.
 - Use **AES-256-GCM** for vault encryption.
+- Use Python `hashlib.pbkdf2_hmac` for PBKDF2-SHA-256 key derivation.
+- Use the Python `cryptography` library for AES-256-GCM operations.
+- Use Python `secrets` for random salt, nonce, and recovery-key generation.
 - Derive the master-password key with **PBKDF2-SHA-256** at **600,000 iterations** and a separate random salt.
 - Use a fresh standard **96-bit AES-GCM nonce** for each encryption operation.
 - A password is required to decrypt the vault on first unlock after boot.
 - A password is also required again after the vault has fully re-locked following a configurable inactivity timeout.
 - The password-based unlock path is the root decrypt capability for the MVP.
+- Recommended blob shape: a small header with version, KDF metadata, nonce, and ciphertext, with secret-bearing data kept inside the encrypted payload.
 
 ### Session unlock model
 The MVP has two distinct gates:
@@ -94,10 +98,17 @@ A separate affordance should allow the user to:
 
 This keeps the common login flow fast while still allowing management operations.
 
-### CLI ingest expectations
+### CLI expectations
 - The CLI should use the same vault format, backend validation rules, and lock/unlock requirements as the UI path.
 - The CLI is intended for local shell usage, including SSH sessions into the device.
-- The initial CLI scope is limited to adding secrets; broader command-line vault management is not required for the MVP.
+- MVP commands are:
+  - `<vault-command> add --key <key-id> --secret <secret> --name <name>`
+  - `<vault-command> list`
+  - `<vault-command> rm --key <key-id>`
+  - `<vault-command> update --key <key-id> --secret <secret>`
+- The CLI should also support `--secret-stdin` for large or shell-sensitive secret values.
+- The CLI may support `--username` where relevant for record creation or update.
+- Other CLI behavior is best-effort for MVP and should be documented as expectations rather than hard guarantees.
 
 ## Future biometric extension
 A future feature may allow a fingerprint sensor, when enabled on the device, to satisfy the access gate.
@@ -128,18 +139,21 @@ At minimum, implementation planning should distinguish these states:
 This state model should drive both UI behavior and timeout handling.
 
 ## Timeout model
-The MVP needs two configurable timers:
+The MVP needs three configurable timers:
 
 1. **Session access window**
    - after a successful PIN unlock, the vault is considered in use for a bounded period
    - default is **1 minute** since the most recent vault access
    - outside that window, the vault returns to PIN-encrypted in-memory state
 
-2. **Clipboard wipe timeout**
+2. **Full relock timeout**
+   - after longer inactivity, the vault returns to the fully locked state
+   - default is **6 hours**
+   - once fully re-locked, master-password decrypt is required again
+
+3. **Clipboard wipe timeout**
    - after copy, the clipboard is blanked after a delay
    - default is **30 seconds**
-
-A separate full-relock timeout may still exist, but the session-access window is the main default locked-state timer defined for the MVP.
 
 ## Recovery and failure model
 - Generate a recovery key as a **32-character base32 string**, grouped for readability, for example `ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ12-3456`.
@@ -152,11 +166,11 @@ A separate full-relock timeout may still exist, but the session-access window is
 
 ## Open architecture questions
 These are intentionally still open and should be resolved before implementation is marked ready:
-- which crypto and key-derivation libraries are suitable in the Decky / SteamOS environment
 - exact file format versioning and metadata layout for `~/.decky-secrets/vault`
-- how inactivity is detected for full relock timing beyond the 1-minute session access window
+- how inactivity is detected for the 1-minute session access window and 6-hour full relock
 - how notes are represented and bounded in the record model
 - what guarantees are realistic for clipboard clearing under SteamOS and Decky runtime constraints
+- exact CLI authentication prompts and failure behavior
 
 ## Recommended delivery order
 1. finalize architecture and threat model
@@ -165,4 +179,5 @@ These are intentionally still open and should be resolved before implementation 
 4. implement vault persistence and unlock model
 5. implement record management UX
 6. implement clipboard copy and timed wipe
-7. evaluate biometric extension separately as post-MVP work
+7. implement the CLI path against the same backend
+8. evaluate biometric extension separately as post-MVP work

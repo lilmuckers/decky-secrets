@@ -19,7 +19,7 @@ This file is the concise in-repo entrypoint. Deeper product and architecture con
   - password-based decrypt on first unlock after boot and after full relock
   - required secondary PIN gate for access during a running session after password unlock
   - Decky plugin UI for listing, adding, editing, deleting, viewing, and copying secrets
-  - a CLI tool for adding secrets directly into the local vault, intended for technical users moving large or complex secrets over SSH
+  - a local CLI tool for adding, listing, removing, and updating secrets in the vault, intended for technical users moving large or complex secrets over SSH
   - record fields for name, username, password, and multiple notes
   - clipboard / pasteboard copy action for a selected secret, with password copy as the default record action
   - automatic clipboard clearing after a short, configurable timeout, defaulting to 30 seconds
@@ -48,7 +48,7 @@ Secondary flows:
 - change master password with current password or recovery key
 - change PIN with master password
 - add/edit/delete a vault entry in the Decky UI
-- add a vault entry from the CLI over a shell or SSH session
+- add, list, remove, and update vault entries from the CLI over a shell or SSH session
 - inspect a record in detail, including notes
 - relock the vault manually
 
@@ -87,7 +87,9 @@ Top-level success conditions for the first useful version:
 - The PIN is numeric only, 4 to 6 digits, and its key is derived with PBKDF2-SHA-256 at 200,000 iterations using a separate random salt.
 - The whole vault is decrypted only briefly per active operation, then re-encrypted in memory with the PIN-derived key and plaintext memory is zeroed.
 - User can create, edit, view, and delete records containing name, username, password, and multiple notes.
-- User can add records from a local CLI tool without needing the Decky UI, to support shell and SSH-based entry of large or complex secrets.
+- User can add, list, remove, and update records from a local CLI tool without needing the Decky UI, to support shell and SSH-based entry of large or complex secrets.
+- The CLI supports `add`, `list`, `rm`, and `update` commands, with secret input via either `--secret` or `--secret-stdin`.
+- The CLI may accept `--username` where relevant for record creation or update.
 - Selecting a record copies its password to the pasteboard by default.
 - Copied password is automatically cleared from the pasteboard after a configurable timeout with a default of 30 seconds.
 - Locked state prevents secret browsing and copying until the required password or PIN step has succeeded.
@@ -99,8 +101,8 @@ Top-level success conditions for the first useful version:
 ## Current delivery intent
 
 - **Current focus:** define architecture, storage model, unlock state model, threat boundaries, and the MVP backlog.
-- **Important constraints:** Steam Deck / SteamOS environment, Decky Loader plugin model, local-only storage, encrypted-at-rest requirement, password-first decrypt model, required PIN-wrapped in-memory model, handheld UX.
-- **Success indicators:** a stable plugin skeleton, clear vault model, explicit full-lock versus session-lock semantics, one end-to-end copy flow, and a backlog decomposed into buildable issues.
+- **Important constraints:** Steam Deck / SteamOS environment, Decky Loader plugin model, local-only storage, encrypted-at-rest requirement, password-first decrypt model, required PIN-wrapped in-memory model, handheld UX, and a local CLI path for technical users.
+- **Success indicators:** a stable plugin skeleton, clear vault model, explicit full-lock versus session-lock semantics, one end-to-end copy flow, a practical CLI ingest path, and a backlog decomposed into buildable issues.
 
 ## Authoritative wiki pages
 

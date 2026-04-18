@@ -11,11 +11,15 @@ The project needed a concrete vault security baseline before implementation work
 The MVP vault security baseline is:
 
 1. **Vault at rest**
-   - Store the vault as a single encrypted blob at `~/.decky-secrets/vault`.
+   - Store the vault as a single versioned encrypted blob at `~/.decky-secrets/vault`.
    - Encrypt with **AES-256-GCM**.
+   - Use Python `hashlib.pbkdf2_hmac` for PBKDF2-SHA-256 derivation.
+   - Use the Python `cryptography` library for AES-GCM operations.
+   - Use Python `secrets` for random salt, nonce, and recovery-key generation.
    - Derive the master-password key with **PBKDF2-SHA-256**, **600,000 iterations**, and a random salt.
    - Use a fresh standard **96-bit AES-GCM nonce** for each encryption operation.
    - Recommended default salt size is 16 bytes.
+   - Recommended blob shape is a minimal header with version, KDF metadata, nonce, and ciphertext, with secret-bearing data inside the encrypted payload.
 
 2. **In-memory handling**
    - The Python backend owns all cryptographic enforcement.
@@ -32,6 +36,7 @@ The MVP vault security baseline is:
    - Derive the PIN key with **PBKDF2-SHA-256**, **200,000 iterations**, and a separate random salt.
    - The PIN value is stored inside the master vault and exposed only transiently in the backend when needed to perform in-memory re-encryption or decryption.
    - The default session access window is **1 minute** since last vault access, after which the vault returns to PIN-encrypted in-memory state.
+   - Full relock is a separate configurable timeout with a default of **6 hours**.
 
 4. **Recovery and credential changes**
    - Generate a **32-character base32 recovery key** grouped for readability, for example `ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ12-3456`.
@@ -41,8 +46,11 @@ The MVP vault security baseline is:
 
 5. **Frontend, CLI, and clipboard behavior**
    - The frontend may receive decrypted private values only for explicit viewing or copy-to-clipboard actions.
-   - A local CLI tool may add secrets directly into the same vault for shell and SSH-based workflows.
+   - A local CLI tool may add, list, remove, and update secrets directly in the same vault for shell and SSH-based workflows.
    - The CLI uses the same vault format, backend validation rules, and lock requirements as the UI path.
+   - MVP CLI commands are `add`, `list`, `rm`, and `update`.
+   - Secret input should work via `--secret` or `--secret-stdin`.
+   - `--username` may be supported where relevant.
    - Secret values remain masked by default in the UI.
    - Reveal and copy actions require explicit user intent.
    - Clipboard auto-clear is required and defaults to **30 seconds**.
@@ -58,15 +66,16 @@ The MVP vault security baseline is:
 - Keeping the vault PIN-encrypted in memory addresses the stated product requirement to avoid long-lived plaintext process memory between accesses.
 - Making the PIN required simplifies the security model and avoids an optional branch that would otherwise leave plaintext in memory.
 - Recovery must exist for password changes, but storing the recovery key on-device would undercut its purpose.
-- A CLI ingest path supports technical users who need to move large or complex secrets over SSH without broadening the storage or trust model.
+- A CLI path supports technical users who need to move large or complex secrets over SSH without broadening the storage or trust model.
+- `--secret-stdin` reduces shell-history and quoting problems for CLI secret entry.
 - Failure throttling should be on by default, while destructive deletion should be opt-in to avoid surprising users.
 
 ## Consequences
 - Product docs must now describe the PIN as required for session access, not optional.
 - Implementation planning must include whole-vault in-memory re-wrap behavior and memory zeroization.
 - UI work must show masked-by-default secrets, explicit reveal/copy controls, and a warninged opt-in destructive-failure option.
-- Implementation planning must include a CLI add-secret path that uses the same backend and vault semantics as the UI.
-- Builder readiness still depends on selecting concrete libraries and finalizing the vault file schema.
+- Implementation planning must include a CLI path that uses the same backend and vault semantics as the UI.
+- Builder readiness still depends on finalizing the exact vault file schema and CLI authentication behavior.
 
 ## Rejected alternative
 - **Optional PIN with potentially persistent plaintext in memory:** rejected because the requirement set prioritized keeping the vault encrypted in memory at rest within the running session.

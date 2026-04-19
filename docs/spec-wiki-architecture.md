@@ -123,11 +123,17 @@ The product should describe this as best-effort clipboard clearing rather than a
 - Opening the plugin from the Decky sidebar while session-locked should land directly on the numeric PIN pad.
 - The user should not need to dismiss an intermediate screen before entering the PIN.
 - PIN entry should optimize for thumb-friendly keypad use in the sidebar context.
-- Successful entry should transition directly into the accessible record view.
+- Successful entry should transition directly into the unlocked record list.
 - Failed entry should keep the user on the PIN pad and provide an immediate visible error cue.
+
+### Unlocked home screen
+- After successful unlock, the default home screen is the unlocked record list.
+- The record list should carry the core handheld workflow: scan, search, add, and manual lock.
+- Secret values should remain hidden in the list view.
 
 ### Default tap behavior
 - Tapping/clicking a record performs the fast-path action: copy password to clipboard.
+- Record detail is opened through an explicit secondary affordance rather than the default row tap.
 
 ### Secondary actions
 A separate affordance should allow the user to:
@@ -137,6 +143,11 @@ A separate affordance should allow the user to:
 - delete the record
 
 This keeps the common login flow fast while still allowing management operations.
+
+### Copy feedback
+- Password copy should trigger immediate, non-blocking confirmation.
+- The feedback should include the clipboard timeout cue, for example that the clipboard clears in 30 seconds.
+- Copy confirmation should be visible without exposing the secret value itself.
 
 ### CLI expectations
 - The CLI should use the same vault format, backend validation rules, and lock/unlock requirements as the UI path.

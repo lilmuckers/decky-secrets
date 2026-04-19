@@ -40,9 +40,10 @@ This file is the concise in-repo entrypoint. Deeper product and architecture con
 3. The backend re-wraps the whole vault into PIN-encrypted in-memory state.
 4. When the plugin is opened from the Decky sidebar during a session-locked state, the first visible surface is a numeric PIN pad.
 5. User enters the required PIN on that pad and the vault unlocks as soon as the correct final digit is entered, without needing a separate submit action.
-6. User browses stored entries and selects one.
-6. The default action copies the record password to the pasteboard for immediate use.
-7. Clipboard is cleared automatically after a short timeout.
+6. After unlock, the user lands on the record list screen.
+7. User browses stored entries and selects one.
+8. The default action copies the record password to the pasteboard for immediate use.
+9. Clipboard is cleared automatically after a short timeout.
 
 Secondary flows:
 - first-time vault setup with recovery-key generation
@@ -60,7 +61,10 @@ Secondary flows:
 - When accessed from the Decky sidebar in a session-locked state, the plugin should open directly into a numeric PIN pad rather than an intermediate record view or extra unlock screen.
 - The PIN flow should not require pressing Enter or tapping a submit button once the correct final digit has been entered.
 - Incorrect PIN entry should produce immediate, obvious feedback, including a visible red error flash on the PIN pad.
+- The unlocked state should land on a record list that supports fast scan, search, add, and manual lock without exposing secret values.
 - The default record action should optimize for fast password copy.
+- Record detail must be a secondary path, not the default tap target.
+- Copy success should be confirmed immediately with a non-blocking clipboard timeout cue.
 - Secret values should stay hidden by default.
 - Revealing or copying a secret requires explicit user action.
 - Timeout and locked-state cues should be obvious enough to prevent accidental exposure.
@@ -71,6 +75,9 @@ Secondary flows:
 - Prefer a simple, native-feeling Decky UI over a clever one.
 - Optimize for handheld use and low-friction interaction.
 - Security-sensitive actions should be explicit, not decorative.
+- The MVP Decky UI should be structured around a small, stable screen set: first run, fully locked unlock, session-locked PIN pad, unlocked record list, record detail, add/edit record, and copy confirmation feedback.
+- The unlocked record list is the post-unlock home screen.
+- Record detail should be reached through an explicit secondary affordance, because the default record tap remains reserved for fast password copy.
 
 ## Test Strategy
 
@@ -97,7 +104,10 @@ Top-level success conditions for the first useful version:
 - User can add, list, remove, and update records from a local CLI tool without needing the Decky UI, to support shell and SSH-based entry of large or complex secrets.
 - The CLI supports `add`, `list`, `rm`, and `update` commands, with secret input via either `--secret` or `--secret-stdin`.
 - The CLI may accept `--username` where relevant for record creation or update.
+- After successful unlock, the default home screen is the record list.
 - Selecting a record copies its password to the pasteboard by default.
+- Record detail is reached through an explicit secondary affordance rather than the default row tap.
+- Copy success is confirmed immediately with a visible, non-blocking clipboard timeout cue.
 - Copied password is automatically cleared from the pasteboard after a configurable timeout with a default of 30 seconds.
 - Locked state prevents secret browsing and copying until the required password or PIN step has succeeded.
 - Authentication failures for password, PIN, and recovery key are rate-limited, with defaults of 5 failures per minute and 20 failures per 10 minutes.
@@ -122,3 +132,7 @@ Top-level success conditions for the first useful version:
 
 The first implementation should bias toward a narrow, trustworthy MVP.
 A weak but small vault plugin is salvageable. A sprawling faux-password-manager is not.
+
+See also:
+- `docs/decisions/2026-04-19-mvp-screen-set-and-navigation.md`
+- `docs/design/2026-04-19-mvp-sidebar-screen-mockups.md`

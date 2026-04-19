@@ -5,10 +5,12 @@
 ## MVP scope
 - local encrypted vault stored on-device
 - password-based decrypt on first unlock after boot and after full relock
-- optional secondary PIN gate after password unlock
+- required secondary PIN gate after password unlock, with PIN-encrypted in-memory session state
 - records containing name, username, password, and multiple notes
+- Decky UI management for browsing and editing records
+- a local CLI path for adding, listing, removing, and updating secrets directly in the vault, especially for large or complex values entered over SSH
 - fast password copy as the default record action
-- automatic clipboard blanking after a configurable timeout, defaulting to 20 seconds
+- automatic clipboard blanking after a configurable timeout, defaulting to 30 seconds
 
 ## Non-goals
 - cloud sync
@@ -22,4 +24,4 @@
 - [[Assumptions-and-decisions]]
 
 ## Current project status
-The project is still in the definition phase. Architecture, threat model, and backlog refinement are in progress. It is not yet ready for normal build execution.
+The project is still in the definition phase. The vault security baseline is now defined at the spec level, including AES-256-GCM at rest, the Python library stack, PIN-wrapped in-memory handling, recovery-key policy, failure-throttling defaults, a 6-hour default full relock, and a CLI path for technical users. Backlog refinement and implementation-readiness work are still in progress. It is not yet ready for normal build execution.

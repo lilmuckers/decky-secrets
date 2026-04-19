@@ -38,8 +38,9 @@ This file is the concise in-repo entrypoint. Deeper product and architecture con
 1. User opens the Decky plugin.
 2. If the vault is fully locked, the user enters the master password to decrypt it.
 3. The backend re-wraps the whole vault into PIN-encrypted in-memory state.
-4. User enters the required PIN before vault contents become accessible.
-5. User browses stored entries and selects one.
+4. When the plugin is opened from the Decky sidebar during a session-locked state, the first visible surface is a numeric PIN pad.
+5. User enters the required PIN on that pad and the vault unlocks as soon as the correct final digit is entered, without needing a separate submit action.
+6. User browses stored entries and selects one.
 6. The default action copies the record password to the pasteboard for immediate use.
 7. Clipboard is cleared automatically after a short timeout.
 
@@ -56,6 +57,9 @@ Secondary flows:
 
 - UI must be fast enough to use mid-session without feeling like a punishment.
 - Copy flow should take as few taps as possible after unlock.
+- When accessed from the Decky sidebar in a session-locked state, the plugin should open directly into a numeric PIN pad rather than an intermediate record view or extra unlock screen.
+- The PIN flow should not require pressing Enter or tapping a submit button once the correct final digit has been entered.
+- Incorrect PIN entry should produce immediate, obvious feedback, including a visible red error flash on the PIN pad.
 - The default record action should optimize for fast password copy.
 - Secret values should stay hidden by default.
 - Revealing or copying a secret requires explicit user action.
@@ -85,6 +89,9 @@ Top-level success conditions for the first useful version:
 - User must use a master password to decrypt the vault on first unlock after boot and after full relock.
 - A PIN gate is required for session access after password unlock.
 - The PIN is numeric only, 4 to 6 digits, and its key is derived with PBKDF2-SHA-256 at 200,000 iterations using a separate random salt.
+- When the plugin is opened from the Decky sidebar while session-locked, the first UI shown is a numeric PIN pad.
+- Correct PIN entry is accepted immediately when the final required digit is entered, without a separate submit step.
+- Incorrect PIN entry produces immediate visible error feedback on the PIN pad before allowing retry.
 - The whole vault is decrypted only briefly per active operation, then re-encrypted in memory with the PIN-derived key and plaintext memory is zeroed.
 - User can create, edit, view, and delete records containing name, username, password, and multiple notes.
 - User can add, list, remove, and update records from a local CLI tool without needing the Decky UI, to support shell and SSH-based entry of large or complex secrets.

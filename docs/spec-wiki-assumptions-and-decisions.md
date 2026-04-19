@@ -24,8 +24,11 @@ Some items below are settled decisions for the MVP. Others are explicit open ass
 ### D-004: PIN is required and wraps session memory
 - A PIN gate is required after password unlock for session access.
 - The vault remains encrypted in memory under a PIN-derived key except during the shortest practical active operation window.
+- When the plugin is opened from the Decky sidebar in the session-locked state, the user lands directly on a numeric PIN pad.
+- Correct PIN entry is accepted immediately on the final digit, without a separate Enter or submit action.
+- Failed PIN entry must produce immediate visible error feedback on the PIN pad.
 - The PIN does not replace the password as the root vault unlock factor in MVP.
-- Reason: this sidesteps the need to keep the vault plaintext in long-lived process memory while still supporting fast repeat access.
+- Reason: this sidesteps the need to keep the vault plaintext in long-lived process memory while still supporting fast repeat access, while keeping the sidebar unlock flow fast enough for the core use case.
 
 ### D-005: Fingerprint support is future scope, not MVP scope
 - Biometric unlock is a future extension only.

@@ -83,6 +83,10 @@ The MVP has two distinct gates:
 2. **Required PIN gate**
    - After password decrypt, the backend re-wraps the whole vault into PIN-encrypted in-memory state.
    - PIN entry is required before vault contents become accessible during the session.
+   - When the plugin is opened from the Decky sidebar while in the session-locked state, the first visible surface should be the PIN-entry screen.
+   - The PIN-entry surface should be a numeric keypad suitable for handheld use.
+   - Correct PIN entry should be accepted automatically on the final required digit, without a separate Enter or submit action.
+   - Incorrect PIN entry should show immediate visible error feedback, including a red flash or equivalent failure cue, before allowing retry.
    - The PIN is a session-access gate layered on top of the password-based decrypt model, not a replacement for the password as the root vault secret.
    - PINs are numeric only, length 4 to 6 digits.
    - Derive the PIN key with **PBKDF2-SHA-256** at **200,000 iterations** and a separate random salt.
@@ -115,6 +119,13 @@ This distinction is important to the UX, timeout behavior, and future biometric 
 The product should describe this as best-effort clipboard clearing rather than an absolute guarantee against OS-level observation.
 
 ## Record interaction model
+### Session-locked entry behavior
+- Opening the plugin from the Decky sidebar while session-locked should land directly on the numeric PIN pad.
+- The user should not need to dismiss an intermediate screen before entering the PIN.
+- PIN entry should optimize for thumb-friendly keypad use in the sidebar context.
+- Successful entry should transition directly into the accessible record view.
+- Failed entry should keep the user on the PIN pad and provide an immediate visible error cue.
+
 ### Default tap behavior
 - Tapping/clicking a record performs the fast-path action: copy password to clipboard.
 

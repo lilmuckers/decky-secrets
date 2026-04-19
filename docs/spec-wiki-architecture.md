@@ -85,7 +85,7 @@ The MVP has two distinct gates:
    - PIN entry is required before vault contents become accessible during the session.
    - When the plugin is opened from the Decky sidebar while in the session-locked state, the first visible surface should be the PIN-entry screen.
    - The PIN-entry surface should be a numeric keypad suitable for handheld use.
-   - The MVP Decky UI uses a fixed 4-digit PIN flow.
+   - The MVP Decky UI supports PIN entry lengths from 4 to 6 digits.
    - Correct PIN entry should be accepted automatically on the final required digit, without a separate Enter or submit action.
    - Incorrect PIN entry should show immediate visible error feedback, including a red flash or equivalent failure cue, before allowing retry.
    - Temporary rate-limit lockout should be surfaced inline on the keypad rather than routing to a different unlock screen.

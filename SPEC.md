@@ -97,7 +97,7 @@ Top-level success conditions for the first useful version:
 - User must use a master password to decrypt the vault on first unlock after boot and after full relock.
 - A PIN gate is required for session access after password unlock.
 - The PIN is numeric only, 4 to 6 digits, and its key is derived with PBKDF2-SHA-256 at 200,000 iterations using a separate random salt.
-- The MVP Decky UI uses a fixed 4-digit PIN flow.
+- The MVP Decky UI supports PIN entry lengths from 4 to 6 digits.
 - When the plugin is opened from the Decky sidebar while session-locked, the first UI shown is a numeric PIN pad.
 - Correct PIN entry is accepted immediately when the final required digit is entered, without a separate submit step.
 - Incorrect PIN entry produces immediate visible error feedback on the PIN pad before allowing retry.

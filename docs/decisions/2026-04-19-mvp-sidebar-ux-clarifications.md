@@ -10,9 +10,9 @@ The initial MVP screen-set work surfaced a handful of open UX questions that wer
 ## Decision
 For the MVP Decky sidebar flow:
 
-1. **PIN length in the UI is fixed to 4 digits.**
-   - The broader security model may still allow 4 to 6 digits as an internal policy range, but the MVP Decky UI should implement a fixed 4-digit PIN flow.
-   - Reason: the design work and keypad interaction are cleaner and faster with a single expected length.
+1. **PIN length in the UI supports 4 to 6 digits.**
+   - The MVP Decky UI should accept PIN entry lengths from 4 to 6 digits rather than forcing a single fixed length.
+   - Reason: this matches the core product requirement while still fitting the keypad-based sidebar flow.
 
 2. **Wrong PIN attempts stay on the PIN pad and are rate-limited, not escalated into a new recovery flow by default.**
    - If rate limiting blocks further attempts temporarily, the PIN pad should remain visible and show a cooldown/try-again-later message.
@@ -31,12 +31,12 @@ For the MVP Decky sidebar flow:
    - Reason: this reduces accidental prolonged exposure compared with a sticky toggle while still supporting intentional inspection.
 
 ## Consequences
-- The PIN pad mockup and issue wording should describe a fixed 4-digit entry expectation.
+- The PIN pad mockup and issue wording should describe 4 to 6 digit entry support.
 - The screen mockups should describe temporary lockout feedback on the keypad rather than a fallback route to a different unlock screen.
 - The record list mockups and issue wording should call for a dedicated secondary details affordance in each row.
 - The record detail mockup should describe reveal as press-and-hold, not an ambiguous hold/toggle choice.
 
 ## Rejected alternatives
-- **Configurable PIN length in the MVP UI:** rejected for now because it adds extra UI and testing complexity to the hottest path.
+- **Fixed 4-digit PIN in the MVP UI:** rejected because it contradicts the approved 4 to 6 digit product requirement.
 - **Long-press to open record detail:** rejected because it is less discoverable in the sidebar context.
 - **Sticky password reveal toggle as the default reveal model:** rejected because it increases shoulder-surfing risk.

@@ -40,7 +40,7 @@ The MVP Decky UI should be planned around these main screens:
 #### Session locked / PIN pad
 - This is the first visible UI when the plugin is opened in the session-locked state.
 - Use a thumb-friendly numeric keypad.
-- The MVP Decky UI uses a fixed 4-digit PIN flow.
+- The MVP Decky UI supports PIN entry lengths from 4 to 6 digits.
 - Accept the PIN immediately on the final correct digit.
 - Wrong PIN entry must produce immediate visible error feedback and clear the entered digits for retry.
 - Temporary rate-limit lockout should be surfaced inline on the keypad rather than routing the user to a different unlock flow.
@@ -78,7 +78,7 @@ The MVP Decky UI should be planned around these main screens:
 - Future design work can refine styling, but these screen roles and navigation expectations are now part of MVP product truth.
 
 ## Clarified MVP UX decisions
-- The Decky UI uses a fixed 4-digit PIN flow in MVP.
+- The Decky UI supports PIN entry lengths from 4 to 6 digits in MVP.
 - Repeated wrong PIN attempts stay on the keypad and surface temporary lockout feedback inline.
 - Record detail is opened through a dedicated trailing details affordance in each row.
 - Password reveal in record detail uses press-and-hold behavior.

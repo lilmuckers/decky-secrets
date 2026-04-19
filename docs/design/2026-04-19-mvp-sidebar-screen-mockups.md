@@ -91,7 +91,7 @@ Enter PIN
 [⌫] [0] [Lock]
 
 [Hint]
-Enter 4-digit PIN
+Enter 4 to 6 digit PIN
 
 [Feedback area]
 Wrong PIN
@@ -101,7 +101,7 @@ Too many attempts, try again in 30s
 
 Interaction notes:
 - first visible UI when the plugin opens in the session-locked state
-- fixed 4-digit PIN in the MVP UI
+- supports 4 to 6 digit PIN entry in the MVP UI
 - accepts the correct PIN immediately on the final required digit
 - wrong PIN produces immediate visible feedback and clears entered digits for retry
 - temporary rate-limit lockout is shown inline on the keypad rather than routing to a different unlock flow
@@ -235,7 +235,7 @@ Interaction notes:
 - overexposed feedback that reveals too much to shoulder surfers
 
 ## Resolved MVP clarifications
-- the Decky UI uses a fixed 4-digit PIN flow for MVP
+- the Decky UI supports PIN entry lengths from 4 to 6 digits in MVP
 - repeated wrong PIN attempts stay on the keypad and surface temporary lockout feedback inline
 - record detail is opened through a dedicated trailing details affordance on each row
 - password reveal in detail uses press-and-hold behavior rather than a sticky toggle

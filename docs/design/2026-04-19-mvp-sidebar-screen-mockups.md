@@ -95,12 +95,16 @@ Enter 4-digit PIN
 
 [Feedback area]
 Wrong PIN
+or
+Too many attempts, try again in 30s
 ```
 
 Interaction notes:
 - first visible UI when the plugin opens in the session-locked state
+- fixed 4-digit PIN in the MVP UI
 - accepts the correct PIN immediately on the final required digit
 - wrong PIN produces immediate visible feedback and clears entered digits for retry
+- temporary rate-limit lockout is shown inline on the keypad rather than routing to a different unlock flow
 - no explicit submit button
 
 ## 4) Unlocked record list
@@ -115,13 +119,13 @@ Search records...
 
 [List]
 > Email
-  user@example.com              [Copy cue on tap]
+  user@example.com              [Copy on tap] [Details >]
 
 > Battle.net
-  masked / optional subtitle
+  masked / optional subtitle    [Details >]
 
 > Wi-Fi
-  Home network
+  Home network                  [Details >]
 
 [Footer / utility]
 Clipboard clears in 30s
@@ -130,6 +134,7 @@ Clipboard clears in 30s
 
 Interaction notes:
 - record tap copies password by default
+- each row includes a dedicated trailing details affordance
 - list supports search, add, and manual lock
 - secrets stay hidden in the list
 
@@ -150,7 +155,7 @@ player123
 
 Password
 ••••••••••••••
-[Reveal hold/toggle]   [Copy]
+[Press and hold to reveal]   [Copy]
 
 Notes
 2FA backup email in personal inbox
@@ -164,7 +169,7 @@ Delete (secondary / danger)
 
 Interaction notes:
 - secret remains masked by default
-- reveal must be explicit
+- reveal uses press-and-hold behavior and returns to masked on release
 - copy password is still the primary action inside detail
 - delete requires confirmation
 
@@ -229,8 +234,8 @@ Interaction notes:
 - poor PIN retry clarity if failure feedback is weak
 - overexposed feedback that reveals too much to shoulder surfers
 
-## Open follow-up questions
-- fixed 4-digit PIN versus configurable 4 to 6 digits in MVP UI
-- fallback UX after repeated wrong PIN attempts
-- exact detail affordance when row tap is reserved for copy
-- timed reveal versus toggle reveal for the password field
+## Resolved MVP clarifications
+- the Decky UI uses a fixed 4-digit PIN flow for MVP
+- repeated wrong PIN attempts stay on the keypad and surface temporary lockout feedback inline
+- record detail is opened through a dedicated trailing details affordance on each row
+- password reveal in detail uses press-and-hold behavior rather than a sticky toggle

@@ -40,8 +40,10 @@ The MVP Decky UI should be planned around these main screens:
 #### Session locked / PIN pad
 - This is the first visible UI when the plugin is opened in the session-locked state.
 - Use a thumb-friendly numeric keypad.
+- The MVP Decky UI uses a fixed 4-digit PIN flow.
 - Accept the PIN immediately on the final correct digit.
 - Wrong PIN entry must produce immediate visible error feedback and clear the entered digits for retry.
+- Temporary rate-limit lockout should be surfaced inline on the keypad rather than routing the user to a different unlock flow.
 
 #### Unlocked record list
 - This is the post-unlock home screen.
@@ -52,6 +54,7 @@ The MVP Decky UI should be planned around these main screens:
 #### Record detail
 - Show non-secret metadata plus a masked password field.
 - Require explicit action to reveal the secret.
+- Use press-and-hold reveal behavior in MVP so the secret re-masks on release.
 - Keep copy password as the primary action.
 - Edit and delete stay secondary and explicit.
 
@@ -74,8 +77,9 @@ The MVP Decky UI should be planned around these main screens:
 - Issue #5 must include copy confirmation and clipboard timeout feedback as part of the copy interaction, not as optional polish.
 - Future design work can refine styling, but these screen roles and navigation expectations are now part of MVP product truth.
 
-## Open follow-up questions
-- Whether PIN length is fixed at 4 digits or configurable within the already-approved 4 to 6 digit range for MVP.
-- What the fallback UX should be after repeated wrong PIN attempts.
-- The exact detail affordance for opening record detail when row tap is reserved for copy.
-- Whether password reveal should be timed hold or explicit toggle by default.
+## Clarified MVP UX decisions
+- The Decky UI uses a fixed 4-digit PIN flow in MVP.
+- Repeated wrong PIN attempts stay on the keypad and surface temporary lockout feedback inline.
+- Record detail is opened through a dedicated trailing details affordance in each row.
+- Password reveal in record detail uses press-and-hold behavior.
+- See `docs/decisions/2026-04-19-mvp-sidebar-ux-clarifications.md`.

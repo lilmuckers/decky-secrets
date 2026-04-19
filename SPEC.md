@@ -63,7 +63,8 @@ Secondary flows:
 - Incorrect PIN entry should produce immediate, obvious feedback, including a visible red error flash on the PIN pad.
 - The unlocked state should land on a record list that supports fast scan, search, add, and manual lock without exposing secret values.
 - The default record action should optimize for fast password copy.
-- Record detail must be a secondary path, not the default tap target.
+- Record detail must be a secondary path, not the default tap target, and should be opened through a dedicated trailing details affordance.
+- Password reveal in record detail should use press-and-hold behavior in MVP.
 - Copy success should be confirmed immediately with a non-blocking clipboard timeout cue.
 - Secret values should stay hidden by default.
 - Revealing or copying a secret requires explicit user action.
@@ -96,9 +97,11 @@ Top-level success conditions for the first useful version:
 - User must use a master password to decrypt the vault on first unlock after boot and after full relock.
 - A PIN gate is required for session access after password unlock.
 - The PIN is numeric only, 4 to 6 digits, and its key is derived with PBKDF2-SHA-256 at 200,000 iterations using a separate random salt.
+- The MVP Decky UI uses a fixed 4-digit PIN flow.
 - When the plugin is opened from the Decky sidebar while session-locked, the first UI shown is a numeric PIN pad.
 - Correct PIN entry is accepted immediately when the final required digit is entered, without a separate submit step.
 - Incorrect PIN entry produces immediate visible error feedback on the PIN pad before allowing retry.
+- Temporary rate-limit lockout is surfaced inline on the PIN pad rather than routing to a different unlock flow.
 - The whole vault is decrypted only briefly per active operation, then re-encrypted in memory with the PIN-derived key and plaintext memory is zeroed.
 - User can create, edit, view, and delete records containing name, username, password, and multiple notes.
 - User can add, list, remove, and update records from a local CLI tool without needing the Decky UI, to support shell and SSH-based entry of large or complex secrets.

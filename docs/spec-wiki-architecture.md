@@ -85,8 +85,10 @@ The MVP has two distinct gates:
    - PIN entry is required before vault contents become accessible during the session.
    - When the plugin is opened from the Decky sidebar while in the session-locked state, the first visible surface should be the PIN-entry screen.
    - The PIN-entry surface should be a numeric keypad suitable for handheld use.
+   - The MVP Decky UI uses a fixed 4-digit PIN flow.
    - Correct PIN entry should be accepted automatically on the final required digit, without a separate Enter or submit action.
    - Incorrect PIN entry should show immediate visible error feedback, including a red flash or equivalent failure cue, before allowing retry.
+   - Temporary rate-limit lockout should be surfaced inline on the keypad rather than routing to a different unlock screen.
    - The PIN is a session-access gate layered on top of the password-based decrypt model, not a replacement for the password as the root vault secret.
    - PINs are numeric only, length 4 to 6 digits.
    - Derive the PIN key with **PBKDF2-SHA-256** at **200,000 iterations** and a separate random salt.
@@ -134,6 +136,7 @@ The product should describe this as best-effort clipboard clearing rather than a
 ### Default tap behavior
 - Tapping/clicking a record performs the fast-path action: copy password to clipboard.
 - Record detail is opened through an explicit secondary affordance rather than the default row tap.
+- The MVP should use a dedicated trailing details affordance in each record row rather than long-press discovery.
 
 ### Secondary actions
 A separate affordance should allow the user to:
@@ -143,6 +146,10 @@ A separate affordance should allow the user to:
 - delete the record
 
 This keeps the common login flow fast while still allowing management operations.
+
+### Reveal behavior
+- Password reveal in record detail should use press-and-hold behavior in MVP.
+- Releasing the hold should return the password field to the masked state.
 
 ### Copy feedback
 - Password copy should trigger immediate, non-blocking confirmation.

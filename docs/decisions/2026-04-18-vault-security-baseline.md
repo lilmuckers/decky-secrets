@@ -37,8 +37,10 @@ The MVP vault security baseline is:
    - Derive the PIN key with **PBKDF2-SHA-256**, **200,000 iterations**, and a separate random salt.
    - The PIN value is stored inside the master vault and exposed only transiently in the backend when needed to perform in-memory re-encryption or decryption.
    - When the plugin is opened from the Decky sidebar in the session-locked state, the first UI must be a numeric PIN pad.
+   - The MVP Decky UI supports PIN entry lengths from 4 to 6 digits.
    - Correct PIN entry should unlock immediately on the final required digit, without a separate submit action.
    - Incorrect PIN entry should produce immediate visible failure feedback on the PIN pad.
+   - Temporary rate-limit lockout should be surfaced inline on the PIN pad rather than routing to a different unlock flow.
    - The default session access window is **1 minute** since last vault access, after which the vault returns to PIN-encrypted in-memory state.
    - Full relock is a separate configurable timeout with a default of **6 hours**.
 
@@ -82,8 +84,8 @@ The MVP vault security baseline is:
 ## Consequences
 - Product docs must now describe the PIN as required for session access, not optional.
 - Implementation planning must include whole-vault in-memory re-wrap behavior and memory zeroization.
-- UI work must show a sidebar-first numeric PIN pad for session-locked entry, immediate success on the final correct digit, and immediate visible failure feedback on wrong PIN entry.
-- UI work must show masked-by-default secrets, explicit reveal/copy controls, and a warninged opt-in destructive-failure option.
+- UI work must show a sidebar-first numeric PIN pad for session-locked entry, support PIN entry lengths from 4 to 6 digits, immediate success on the final correct digit, inline temporary lockout messaging, and immediate visible failure feedback on wrong PIN entry.
+- UI work must show masked-by-default secrets, explicit reveal/copy controls, press-and-hold password reveal in detail, a dedicated trailing details affordance for record rows, and a warninged opt-in destructive-failure option.
 - Implementation planning must include a CLI path that uses the same backend and vault semantics as the UI.
 - Builder readiness still depends on validating the best-guess schema and deciding whether any non-interactive CLI auth path is needed.
 

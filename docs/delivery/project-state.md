@@ -10,16 +10,17 @@ See the framework's `policies/project-activation.md` for the full contract.
 ```json
 {
   "project": "decky-secrets",
-  "state": "BOOTSTRAPPED",
+  "state": "ACTIVE",
   "bootstrapped_at": "2026-04-16T21:45:39Z",
-  "defined_at": null,
-  "activated_at": null,
-  "spec_approval_ref": null,
-  "activated_by": null,
+  "defined_at": "2026-04-19T09:15:10Z",
+  "activated_at": "2026-04-19T09:15:10Z",
+  "spec_approval_ref": "https://github.com/lilmuckers/decky-secrets/issues/1",
+  "activated_by": "Patrick",
   "notes": [
     "Framework bootstrap completed locally on 2026-04-16.",
     "Initial project intent captured from Patrick's startup brief.",
-    "Project remains BOOTSTRAPPED until wiki, backlog, and spec approval gate are in place."
+    "Definition readiness was verified across spec, wiki, design docs, and implementation backlog before activation.",
+    "Spec approval issue #1 was closed by the human on 2026-04-19, activating normal Builder dispatch."
   ]
 }
 ```

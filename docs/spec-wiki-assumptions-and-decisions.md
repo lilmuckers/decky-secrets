@@ -102,6 +102,25 @@ Some items below are settled decisions for the MVP. Others are explicit open ass
 - If secure interactive prompting is not possible, the CLI should fail rather than guess.
 - Reason: this minimizes secret leakage and avoids unsafe prompt behavior in shell and SSH workflows.
 
+### D-016: Local secret exposure is bounded, not eliminated
+- Clipboard copy is an intentional exposure event with mandatory best-effort auto-clear.
+- Plaintext secret material may exist only for the shortest practical active operation window in the backend.
+- Session lock blocks access but is not treated as protection against a privileged local attacker.
+- Crash, restart, and reboot are treated conservatively as full-lock events.
+- Reason: the MVP is a local encrypted vault, not a hardened endpoint-security system, so the implementation must set honest trust boundaries.
+
+### D-017: Filesystem permissions are part of the MVP security contract
+- The vault path remains fixed at `~/.decky-secrets/vault`.
+- The parent directory should be created with permissions equivalent to `0700` where supported.
+- The vault file should be created with permissions equivalent to `0600` where supported.
+- Writes should be atomic in the same directory.
+- Reason: restrictive local permissions and safe write behavior are part of the minimum acceptable storage posture for a device-local secrets vault.
+
+### D-018: Shared throttling is sufficient for PIN in MVP
+- The same combined auth-failure counters apply to password, PIN, and recovery-key attempts across UI and CLI paths.
+- No extra PIN-specific permanent lockout is required for MVP beyond shared temporary throttling and optional delete-on-failure.
+- Reason: this keeps the first release simpler while still putting meaningful friction in front of online guessing within the local trust model.
+
 ## Current assumptions to validate
 
 ### A-001: SteamOS / Decky can support the required crypto stack cleanly

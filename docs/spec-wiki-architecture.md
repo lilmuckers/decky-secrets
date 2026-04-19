@@ -202,6 +202,47 @@ The MVP security stance is:
 - secret values remain hidden by default outside intentional view/copy actions
 - CLI-based secret entry is allowed only as another local device path, including over user-controlled SSH access
 
+## MVP security boundaries
+These boundary statements are part of the implementation contract, not optional hardening ideas.
+
+### Clipboard handling
+- Copying a secret is an intentional local exposure event.
+- Clipboard auto-clear is required, defaults to **30 seconds**, and must be described as **best effort**.
+- The product must not claim guaranteed wipe from clipboard history tools, already-pasted destinations, or crash scenarios.
+- Copy confirmation must not echo the secret value.
+
+### In-memory handling
+- Plaintext vault contents may exist only during the shortest practical active operation window inside the backend.
+- After each active operation, the vault must be re-encrypted in memory under the PIN-derived key immediately.
+- Session lock means the vault remains only as PIN-encrypted in-memory material plus non-secret UI state.
+- Full lock means password decrypt is required again and PIN-derived session material must be discarded.
+- The frontend must not retain decrypted secrets outside an explicit reveal or copy workflow.
+
+### Lock-state semantics
+- **Unlocked and accessible** permits the active operation currently in progress and should expire back to session-locked on inactivity.
+- **Session locked** blocks secret browsing, copying, reveal, edit, delete, and CLI access until PIN success.
+- **Fully locked** blocks all vault access until master-password decrypt succeeds.
+- Session lock is a UX and access-control boundary, not a guarantee against a privileged local attacker inspecting runtime memory.
+
+### Local storage permissions
+- The vault lives only at `~/.decky-secrets/vault` for MVP.
+- The parent directory should use permissions equivalent to `0700` where supported.
+- The vault file should use permissions equivalent to `0600` where supported.
+- Writes should be atomic within the same directory, and logs or errors must never include secret-bearing fields.
+
+### Crash, suspend, restart, and timeout behavior
+- Restart, crash, and reboot must be treated as full-lock events that require the master password again.
+- Suspend and resume must re-evaluate real elapsed time and must not silently extend an expired unlocked window.
+- Clipboard clear may fail across crash or restart boundaries; that residual exposure is an accepted MVP risk.
+- Timeout expiry must revoke secret-bearing actions before the next operation.
+
+### PIN throttling and biometrics
+- Shared auth throttling across password, PIN, and recovery-key attempts is sufficient for MVP.
+- No additional PIN-specific permanent lockout is required beyond shared throttling and optional delete-on-failure.
+- Any future biometric factor may satisfy only the session-access gate unless a later decision explicitly broadens that trust boundary.
+
+For the durable security rationale and accepted risks, see `docs/decisions/2026-04-19-mvp-local-secret-exposure-boundaries.md`.
+
 ## Runtime state model
 At minimum, implementation planning should distinguish these states:
 - uninitialized vault

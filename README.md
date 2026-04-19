@@ -4,53 +4,60 @@ A Decky Loader plugin for Steam Deck / SteamOS that will eventually store user s
 
 ## Current status
 
-Issue #3 adds only the initial Decky plugin skeleton.
+Issues #3 and #4 establish the initial Decky plugin scaffold plus the Python encrypted-vault persistence layer.
 
 What exists now:
 - Decky plugin metadata in `plugin.json`
 - a TypeScript frontend scaffold in `src/index.tsx`
-- a minimal Python backend entrypoint in `main.py`
+- a Python backend entrypoint in `main.py`
+- a testable Python vault module in `decky_secrets/vault.py`
 - Rollup and TypeScript build config for the current Decky template toolchain
-- a placeholder Decky panel that loads and shows scaffold status
-- a reserved `backend/` directory for later vault/backend implementation work
+- a placeholder Decky panel that loads and shows backend status
+- encrypted-at-rest vault creation and load support at `~/.decky-secrets/vault`
+- unit tests for blob shape, permissions, and password-based decrypt
 
 What is intentionally **not** implemented yet:
-- vault persistence
-- cryptography
-- password unlock flow
-- PIN unlock flow
+- password unlock flow orchestration
+- PIN unlock/session-lock flow orchestration
 - clipboard copy or wipe behavior
-- CLI ingest or record management
+- Decky record-management UI flows
+- CLI ingest or broader record-management commands
 
 ## Repository layout
 
 ```text
 .
-├── backend/           # reserved for future backend build artifacts/source
-├── docs/              # spec, architecture, decisions, delivery state
-├── main.py            # live Decky Python backend entrypoint
-├── package.json       # frontend toolchain config
-├── plugin.json        # Decky plugin metadata
-├── rollup.config.js   # Decky Rollup build config
-├── src/index.tsx      # placeholder Decky sidebar UI
-└── tsconfig.json      # TypeScript compiler settings
+├── backend/              # reserved for future backend build artifacts/source
+├── decky_secrets/        # Python vault persistence and crypto module
+├── docs/                 # spec, architecture, decisions, delivery state
+├── main.py               # live Decky Python backend entrypoint
+├── package.json          # frontend toolchain config
+├── plugin.json           # Decky plugin metadata
+├── requirements.txt      # Python backend dependency pinning
+├── rollup.config.js      # Decky Rollup build config
+├── src/index.tsx         # placeholder Decky sidebar UI
+├── tests/test_vault.py   # Python unit tests for persistence layer
+└── tsconfig.json         # TypeScript compiler settings
 ```
 
-The scaffold keeps room for the documented Python-owned vault model and the distinct lock states defined in `SPEC.md` and `docs/spec-wiki-architecture.md`.
+The current backend keeps room for the documented Python-owned vault model and the distinct full-lock versus session-lock states defined in `SPEC.md` and `docs/spec-wiki-architecture.md`.
 
 ## Local development
 
 ### Install prerequisites
 
-For the current Decky template toolchain, install:
+For the current toolchain, install:
 - Node.js 16.14 or newer
 - `pnpm` 9.x
+- Python 3.11 or newer
+- the Python `cryptography` package from `requirements.txt`
 - Decky Loader on the target Steam Deck / SteamOS device
 
 Example:
 
 ```bash
 npm install -g pnpm@9
+python3 -m pip install -r requirements.txt
 ```
 
 From a fresh checkout, install frontend dependencies with:
@@ -99,14 +106,15 @@ After copying the plugin files onto the device:
 
 ## Verify
 
-For this scaffold slice, verify the following:
+For the current scaffold plus persistence slice, verify the following:
 
 1. `pnpm install` succeeds on a fresh checkout
 2. `pnpm build` produces `dist/index.js`
-3. Decky Loader shows the `Decky Secrets` plugin in the sidebar
-4. opening the plugin renders the placeholder panel successfully
-5. the panel shows the placeholder backend state `uninitialized_vault`
-6. the panel renders the reserved MVP screen note without crashing
+3. `python3 -m unittest tests.test_vault` passes
+4. Decky Loader shows the `Decky Secrets` plugin in the sidebar
+5. opening the plugin renders the placeholder panel successfully
+6. the panel shows either `uninitialized_vault` or `decrypt_required`, depending on whether `~/.decky-secrets/vault` already exists
+7. a backend-created vault file remains encrypted at rest and is not readable as plaintext JSON secret data
 
 ## Product direction
 

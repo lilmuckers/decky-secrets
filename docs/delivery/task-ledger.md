@@ -282,9 +282,9 @@ It is the sole persistence mechanism for task state across agent sessions.
 {
   "task": "ISSUE-5",
   "state": "needs_review",
-  "current_action": "Builder opened PR #14 for issue #5 and QA plus Security review are now in progress.",
-  "next_action": "Await QA and Security callbacks for PR #14, then route to Spec if both pass.",
-  "owner": "qa-decky-secrets",
+  "current_action": "QA approved PR #14 and Security review remains in progress.",
+  "next_action": "Await Security callback for PR #14, then route to Spec if Security also passes.",
+  "owner": "security-decky-secrets",
   "branch": "feat/issue-5-clipboard-copy",
   "pr": 14,
   "expected_callback_at": "2026-04-20T09:30:00Z",
@@ -302,6 +302,11 @@ It is the sole persistence mechanism for task state across agent sessions.
     {
       "at": "2026-04-20T07:18:00Z",
       "action": "Builder reported NEEDS_REVIEW with PR #14 for issue #5; dispatched QA and Security review",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T07:22:00Z",
+      "action": "QA approved PR #14 and applied qa-approved; awaiting Security review",
       "by": "orchestrator-decky-secrets"
     }
   ]

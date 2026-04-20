@@ -2,11 +2,12 @@
   "name": "decky-secrets",
   "version": "0.0.1",
   "private": true,
-  "description": "Minimal Decky Loader scaffold for the decky-secrets plugin",
+  "description": "Decky Loader clipboard copy flow for the decky-secrets plugin",
   "type": "module",
   "scripts": {
     "build": "rollup -c",
-    "watch": "rollup -c -w"
+    "watch": "rollup -c -w",
+    "test:frontend": "node --test tests/clipboard-flow.test.mjs"
   },
   "devDependencies": {
     "@decky/rollup": "^1.0.2",

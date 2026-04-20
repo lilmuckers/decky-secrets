@@ -17,6 +17,17 @@ from .auth import (
     VaultAuthManager,
     VaultState,
 )
+from .clipboard import (
+    BEST_EFFORT_CLEAR_DISCLAIMER,
+    CLIPBOARD_TIMEOUT_ENV_VAR,
+    DEFAULT_CLIPBOARD_CLEAR_SECONDS,
+    MAX_CLIPBOARD_CLEAR_SECONDS,
+    MIN_CLIPBOARD_CLEAR_SECONDS,
+    ClipboardCopyPayload,
+    ClipboardCopyService,
+    RecordSummary,
+    resolve_clipboard_clear_seconds,
+)
 from .vault import (
     CURRENT_BLOB_VERSION,
     CURRENT_KDF_ALGORITHM,
@@ -34,10 +45,15 @@ from .vault import (
 )
 
 __all__ = [
+    "BEST_EFFORT_CLEAR_DISCLAIMER",
+    "CLIPBOARD_TIMEOUT_ENV_VAR",
     "CURRENT_BLOB_VERSION",
     "CURRENT_KDF_ALGORITHM",
     "CURRENT_KDF_ITERATIONS",
     "CURRENT_PIN_KDF_ITERATIONS",
+    "ClipboardCopyPayload",
+    "ClipboardCopyService",
+    "DEFAULT_CLIPBOARD_CLEAR_SECONDS",
     "DEFAULT_DELETE_ON_FAILURE_THRESHOLD",
     "DEFAULT_FULL_RELOCK_TIMEOUT_SECONDS",
     "DEFAULT_LONG_WINDOW_ATTEMPTS",
@@ -45,6 +61,9 @@ __all__ = [
     "DEFAULT_SESSION_ACCESS_WINDOW_SECONDS",
     "DEFAULT_SHORT_WINDOW_ATTEMPTS",
     "DEFAULT_SHORT_WINDOW_SECONDS",
+    "MAX_CLIPBOARD_CLEAR_SECONDS",
+    "MIN_CLIPBOARD_CLEAR_SECONDS",
+    "RecordSummary",
     "VAULT_DIR_NAME",
     "VAULT_FILE_NAME",
     "AccessStateError",
@@ -62,4 +81,5 @@ __all__ = [
     "VaultRecord",
     "VaultState",
     "create_recovery_key",
+    "resolve_clipboard_clear_seconds",
 ]

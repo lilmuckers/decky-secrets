@@ -73,6 +73,7 @@ class AuthStatus:
     session_access_expires_at: str | None
     full_relock_at: str | None
     auth_locked_until: str | None
+    session_pin_length: int | None
     delete_on_failure_enabled: bool
     failure_count: int
 
@@ -106,6 +107,7 @@ class VaultAuthManager:
         self._failures: list[FailureEvent] = []
         self._delete_failure_count = 0
         self._session_key: bytearray | None = None
+        self._session_pin_length: int | None = None
 
     def get_status(self) -> AuthStatus:
         self._apply_timeouts()
@@ -116,6 +118,7 @@ class VaultAuthManager:
             session_access_expires_at=_isoformat(self._session_access_deadline()),
             full_relock_at=_isoformat(self._full_relock_deadline()),
             auth_locked_until=_isoformat(locked_until),
+            session_pin_length=self._session_pin_length,
             delete_on_failure_enabled=self.config.delete_on_failure,
             failure_count=self._delete_failure_count,
         )
@@ -132,6 +135,7 @@ class VaultAuthManager:
             raise AuthenticationError("master password unlock failed") from exc
 
         self._session_envelope = self._create_session_envelope(payload=payload, pin=payload.pin.value)
+        self._session_pin_length = len(payload.pin.value)
         self._wipe_session_key()
         self._accessible_since = None
         self._last_activity_at = self.clock.now()
@@ -335,6 +339,7 @@ class VaultAuthManager:
 
     def _discard_session_material(self) -> None:
         self._session_envelope = None
+        self._session_pin_length = None
         self._wipe_session_key()
         self._accessible_since = None
         self._last_activity_at = None

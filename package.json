@@ -7,7 +7,7 @@
   "scripts": {
     "build": "rollup -c",
     "watch": "rollup -c -w",
-    "test:frontend": "node --test tests/clipboard-flow.test.mjs"
+    "test:frontend": "node --test tests/clipboard-flow.test.mjs tests/ui-flow.test.mjs tests/ui-contract.test.mjs"
   },
   "devDependencies": {
     "@decky/rollup": "^1.0.2",

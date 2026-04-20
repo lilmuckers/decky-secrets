@@ -343,14 +343,19 @@ It is the sole persistence mechanism for task state across agent sessions.
 {
   "task": "ISSUE-8",
   "state": "in_progress",
-  "current_action": "Spec is readying issue #8 for build handoff after validator failures on non-security readiness sections.",
-  "next_action": "Await Spec callback, rerun ready validator, then dispatch Builder if the issue passes.",
-  "owner": "spec-decky-secrets",
-  "expected_callback_at": "2026-04-20T11:20:00Z",
+  "current_action": "Spec completed issue #8 readiness repair and Builder is now implementing the CLI slice.",
+  "next_action": "Await Builder callback with branch, PR number, and test results for issue #8.",
+  "owner": "builder-decky-secrets",
+  "expected_callback_at": "2026-04-20T12:00:00Z",
   "history": [
     {
       "at": "2026-04-20T09:59:00Z",
       "action": "Merged PR #14 completed issue #5; issue #8 was the next lowest-numbered ready-for-build issue, but validator failures routed it to Spec for readiness repair before Builder handoff",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T10:01:00Z",
+      "action": "Spec completed issue #8 readiness repair; validation passed and Builder was dispatched",
       "by": "orchestrator-decky-secrets"
     }
   ]

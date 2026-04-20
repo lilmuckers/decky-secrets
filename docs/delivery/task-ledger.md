@@ -403,10 +403,10 @@ It is the sole persistence mechanism for task state across agent sessions.
 ```json
 {
   "task": "ISSUE-9",
-  "state": "needs_review",
-  "current_action": "QA approved PR #16 after Builder's rework, and Spec final review is now in progress with security-approved still intact.",
-  "next_action": "Await Spec callback for PR #16, then apply orchestrator-approved and merge if Spec passes.",
-  "owner": "spec-decky-secrets",
+  "state": "done",
+  "current_action": "PR #16 merged and issue #9 completed.",
+  "next_action": "Treat the MVP Decky UI contract for row-tap copy, dedicated trailing details affordance, explicit reveal-on-hold, and clear session-lock versus full-lock wording as fixed shared behavior for follow-on work.",
+  "owner": "orchestrator-decky-secrets",
   "branch": "feat/issue-9-record-management-ui",
   "pr": 16,
   "expected_callback_at": "2026-04-20T13:40:00Z",
@@ -444,6 +444,11 @@ It is the sole persistence mechanism for task state across agent sessions.
     {
       "at": "2026-04-20T12:11:00Z",
       "action": "QA approved PR #16 after re-review and Spec was dispatched for final review",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T12:14:47Z",
+      "action": "Spec applied spec-satisfied, orchestrator-approved was added, PR #16 merged with merge commit 900f5e86922b03deaa5e333ab5660b76f4417675, and issue #9 was closed",
       "by": "orchestrator-decky-secrets"
     }
   ]

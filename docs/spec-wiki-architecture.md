@@ -169,8 +169,8 @@ This keeps the common login flow fast while still allowing management operations
 - Other CLI behavior is best-effort for MVP and should be documented as expectations rather than hard guarantees.
 
 ### Best-guess CLI authentication and failure behavior
-- If the vault is fully locked, the CLI should prompt for the **master password** using non-echo terminal input.
-- If the vault is not fully locked but is in the PIN-encrypted session state, the CLI should prompt for the **PIN** using non-echo terminal input.
+- The shipped MVP CLI surface is a one-shot process model: each `python3 -m decky_secrets ...` invocation starts with a fresh backend auth manager.
+- Because session state is not persisted across one-shot CLI invocations in MVP, each command should conservatively prompt for the **master password** and then the **PIN** using non-echo terminal input.
 - If `stdin` is already reserved for `--secret-stdin`, authentication prompts should read from `/dev/tty` when available rather than consuming piped secret input.
 - If no interactive terminal is available and required authentication input was not provided through an approved mechanism, the command should fail cleanly with a clear message rather than falling back to insecure prompt behavior.
 - Failed CLI authentication attempts should count toward the same password/PIN/recovery-key rate limits as UI attempts.
@@ -220,7 +220,7 @@ These boundary statements are part of the implementation contract, not optional 
 
 ### Lock-state semantics
 - **Unlocked and accessible** permits the active operation currently in progress and should expire back to session-locked on inactivity.
-- **Session locked** blocks secret browsing, copying, reveal, edit, delete, and CLI access until PIN success.
+- **Session locked** blocks secret browsing, copying, reveal, edit, delete, and CLI access until PIN success. In the shipped one-shot CLI surface, fresh invocations do not resume from an existing session-locked process state.
 - **Fully locked** blocks all vault access until master-password decrypt succeeds.
 - Session lock is a UX and access-control boundary, not a guarantee against a privileged local attacker inspecting runtime memory.
 

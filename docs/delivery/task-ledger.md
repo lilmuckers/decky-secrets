@@ -216,10 +216,10 @@ It is the sole persistence mechanism for task state across agent sessions.
 {
   "task": "ISSUE-7",
   "state": "in_progress",
-  "current_action": "Security workspace was reset to main and synced; Security is re-running issue #7 build-readiness preparation.",
-  "next_action": "Await Security callback, rerun ready validator, then dispatch Builder if the issue passes.",
-  "owner": "security-decky-secrets",
-  "expected_callback_at": "2026-04-20T08:45:00Z",
+  "current_action": "Security completed issue #7 readiness repair and Builder is now implementing the backend lock/auth slice.",
+  "next_action": "Await Builder callback with branch, PR number, and test results for issue #7.",
+  "owner": "builder-decky-secrets",
+  "expected_callback_at": "2026-04-20T09:30:00Z",
   "history": [
     {
       "at": "2026-04-20T06:40:07Z",
@@ -229,6 +229,11 @@ It is the sole persistence mechanism for task state across agent sessions.
     {
       "at": "2026-04-20T06:43:49Z",
       "action": "Reset security workspace to main, synced to latest origin/main, and re-dispatched issue #7 readiness repair",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T06:47:16Z",
+      "action": "Security completed issue #7 readiness repair; validation passed and Builder was dispatched",
       "by": "orchestrator-decky-secrets"
     }
   ]

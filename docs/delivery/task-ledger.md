@@ -343,12 +343,12 @@ It is the sole persistence mechanism for task state across agent sessions.
 {
   "task": "ISSUE-8",
   "state": "needs_review",
-  "current_action": "Builder updated PR #15 after narrowing the CLI contract, and QA re-review is now in progress while security-approved remains present.",
-  "next_action": "Await QA callback for the updated PR #15, then route to Spec if QA passes.",
-  "owner": "qa-decky-secrets",
+  "current_action": "PR #15 has qa-approved and security-approved, and Spec final review is now in progress.",
+  "next_action": "Await Spec callback for PR #15, then merge immediately if spec-satisfied is applied and required checks are passing.",
+  "owner": "spec-decky-secrets",
   "branch": "feat/issue-8-cli-vault-commands",
   "pr": 15,
-  "expected_callback_at": "2026-04-20T12:15:00Z",
+  "expected_callback_at": "2026-04-20T12:20:00Z",
   "history": [
     {
       "at": "2026-04-20T09:59:00Z",
@@ -378,6 +378,11 @@ It is the sole persistence mechanism for task state across agent sessions.
     {
       "at": "2026-04-20T10:15:00Z",
       "action": "Builder narrowed the CLI contract to match the real one-shot process model and QA was re-dispatched for review while preserving security-approved",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T10:18:00Z",
+      "action": "QA approved PR #15 under the narrowed one-shot CLI contract; dispatched Spec for final review",
       "by": "orchestrator-decky-secrets"
     }
   ]

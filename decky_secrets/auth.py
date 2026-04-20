@@ -9,9 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Literal
 
-from cryptography.exceptions import InvalidTag
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
-
+from .crypto import AuthTagError, decrypt_aes_gcm, encrypt_aes_gcm
 from .vault import CURRENT_KDF_ALGORITHM, CURRENT_PIN_KDF_ITERATIONS, NONCE_SIZE, VaultBlobError, VaultFileStore, VaultPayload
 
 VaultState = Literal[
@@ -153,7 +151,7 @@ class VaultAuthManager:
         session_key = _derive_pin_key(pin=pin, pin_kdf=self._session_envelope.pin_kdf)
         try:
             self._decrypt_session_payload(session_key=session_key)
-        except (VaultBlobError, InvalidTag) as exc:
+        except (VaultBlobError, AuthTagError) as exc:
             _wipe_bytes(session_key)
             self._record_failure(factor="pin", caller=caller)
             raise AuthenticationError("PIN unlock failed") from exc
@@ -254,7 +252,7 @@ class VaultAuthManager:
         nonce = secrets.token_bytes(NONCE_SIZE)
         plaintext = bytearray(json.dumps(payload.to_dict(), sort_keys=True, separators=(",", ":")).encode("utf-8"))
         try:
-            ciphertext = AESGCM(bytes(key)).encrypt(nonce, bytes(plaintext), None)
+            ciphertext = encrypt_aes_gcm(key=key, nonce=nonce, plaintext=bytes(plaintext))
         finally:
             _wipe_bytes(key)
             _wipe_bytes(plaintext)
@@ -271,14 +269,14 @@ class VaultAuthManager:
 
         plaintext = bytearray()
         try:
-            plaintext_bytes = AESGCM(bytes(session_key)).decrypt(
-                base64.b64decode(self._session_envelope.nonce_b64.encode("ascii")),
-                base64.b64decode(self._session_envelope.ciphertext_b64.encode("ascii")),
-                None,
+            plaintext_bytes = decrypt_aes_gcm(
+                key=session_key,
+                nonce=base64.b64decode(self._session_envelope.nonce_b64.encode("ascii")),
+                ciphertext_and_tag=base64.b64decode(self._session_envelope.ciphertext_b64.encode("ascii")),
             )
             plaintext.extend(plaintext_bytes)
             return VaultPayload.from_dict(json.loads(plaintext.decode("utf-8")))
-        except InvalidTag as exc:
+        except AuthTagError as exc:
             raise VaultBlobError("session unlock failed") from exc
         finally:
             _wipe_bytes(plaintext)

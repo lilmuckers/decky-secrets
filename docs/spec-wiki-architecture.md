@@ -49,6 +49,7 @@ The CLI is an additional local-management surface, not a separate storage path o
 - Bundled Python modules must be arranged so `main.py` can import the backend package successfully under Decky Loader's plugin entrypoint expectations.
 - The shipped secure backend must not depend on bundled binary crypto artifacts that require a newer OpenSSL ABI than the target Steam Deck runtime provides.
 - Platform-specific packaging is acceptable only if it preserves the approved crypto profile and is validated on a real Steam Deck device.
+- The current compatible backend strategy uses `pycryptodomex` for AES-256-GCM so the shipped secure path avoids the incompatible `cryptography` OpenSSL ABI dependency that failed on device, while keeping PBKDF2-SHA-256 in Python `hashlib`.
 - Real-device compatibility validation is a release gate for backend-affecting changes, especially import resolution and secure backend startup.
 
 ### Best-guess vault blob schema

@@ -27,6 +27,10 @@ The project adopts the following constraints for all backend-affecting work on S
    - The right fix is either a Steam Deck compatible packaging/runtime strategy or a reduced dependency surface that still preserves the approved crypto profile.
    - The project should not respond to the current packaging failure by weakening the encryption model, removing the password/PIN architecture, or lowering the documented crypto claims.
 
+5. **The shipped Steam Deck compatible path should minimize avoidable OpenSSL ABI coupling**
+   - If a vetted AES-256-GCM implementation can preserve the approved security profile without relying on the incompatible `cryptography` OpenSSL ABI path, the project should prefer that lower-coupling runtime surface.
+   - The chosen implementation should keep the existing vault format, PBKDF2-SHA-256 derivation rules, and authenticated-encryption guarantees intact.
+
 ## Consequences
 - Follow-up work should be split into explicit delivery slices for import-path compatibility and secure crypto-runtime compatibility.
 - Issues that touch backend packaging or secure backend startup must include real-device Steam Deck validation in acceptance criteria.

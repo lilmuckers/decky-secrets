@@ -216,14 +216,19 @@ It is the sole persistence mechanism for task state across agent sessions.
 {
   "task": "ISSUE-7",
   "state": "in_progress",
-  "current_action": "Security is readying issue #7 for build handoff after validator failures on security/readiness sections.",
+  "current_action": "Security workspace was reset to main and synced; Security is re-running issue #7 build-readiness preparation.",
   "next_action": "Await Security callback, rerun ready validator, then dispatch Builder if the issue passes.",
   "owner": "security-decky-secrets",
-  "expected_callback_at": "2026-04-20T08:30:00Z",
+  "expected_callback_at": "2026-04-20T08:45:00Z",
   "history": [
     {
       "at": "2026-04-20T06:40:07Z",
       "action": "Dispatched Security to repair issue #7 readiness gaps before Builder handoff",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T06:43:49Z",
+      "action": "Reset security workspace to main, synced to latest origin/main, and re-dispatched issue #7 readiness repair",
       "by": "orchestrator-decky-secrets"
     }
   ]

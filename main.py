@@ -1,9 +1,21 @@
 from __future__ import annotations
 
+import sys
 from dataclasses import asdict, dataclass
+from pathlib import Path
 from typing import Any
 
 import decky
+
+
+def _ensure_plugin_root_on_sys_path() -> None:
+    plugin_root = Path(__file__).resolve().parent
+    plugin_root_str = str(plugin_root)
+    if plugin_root_str not in sys.path:
+        sys.path.insert(0, plugin_root_str)
+
+
+_ensure_plugin_root_on_sys_path()
 
 from decky_secrets import (
     BEST_EFFORT_CLEAR_DISCLAIMER,

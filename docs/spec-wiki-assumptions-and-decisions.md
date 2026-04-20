@@ -125,6 +125,7 @@ Some items below are settled decisions for the MVP. Others are explicit open ass
 ### D-019: Steam Deck backend runtime compatibility is a hard ship gate
 - The packaged Python backend must load inside the real Decky plugin sandbox on Steam Deck.
 - Bundled Python code must satisfy Decky Loader import-path expectations for `main.py` and the backend package.
+- The shipped plugin layout must keep `decky_secrets/` beside `main.py`, and `main.py` must bootstrap that plugin-root path before importing bundled backend modules.
 - Real-device validation is required for backend import resolution and secure backend startup before backend-affecting work is considered complete.
 - Reason: local and CI validation already missed critical runtime failures that only appeared on an actual Steam Deck.
 

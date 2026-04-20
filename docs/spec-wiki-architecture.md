@@ -118,6 +118,11 @@ This distinction is important to the UX, timeout behavior, and future biometric 
 - The implementation should avoid swap/pagefile exposure where practical.
 - This is a hardened best-effort memory model, not an absolute guarantee against a sufficiently privileged local attacker.
 
+### Decky backend import layout
+- The shipped Decky plugin package must include the `decky_secrets/` Python package directory beside `main.py` in the plugin root.
+- `main.py` must bootstrap the plugin root onto `sys.path` before importing bundled backend modules, because Decky Loader may load the backend entrypoint from the plugin sandbox without repo-root import assumptions that hold in local development.
+- Backend-affecting package validation should exercise that file-path import behavior directly rather than assuming `python -m` or repo-root execution semantics.
+
 ## Clipboard model
 - The default action when selecting a record is to copy the record password to the clipboard.
 - The record view must also expose explicit actions to view, edit, and delete the record.

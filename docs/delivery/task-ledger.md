@@ -342,13 +342,13 @@ It is the sole persistence mechanism for task state across agent sessions.
 ```json
 {
   "task": "ISSUE-8",
-  "state": "needs_review",
-  "current_action": "Security approved PR #15 and QA review remains in progress.",
-  "next_action": "Await QA callback for PR #15, then route to Spec if QA also passes.",
-  "owner": "qa-decky-secrets",
+  "state": "in_progress",
+  "current_action": "QA failed PR #15 on a real CLI process-model mismatch and Builder is reworking the existing PR.",
+  "next_action": "Await Builder callback for PR #15 fixes, then re-dispatch QA and preserve Security approval only if still valid.",
+  "owner": "builder-decky-secrets",
   "branch": "feat/issue-8-cli-vault-commands",
   "pr": 15,
-  "expected_callback_at": "2026-04-20T12:30:00Z",
+  "expected_callback_at": "2026-04-20T12:00:00Z",
   "history": [
     {
       "at": "2026-04-20T09:59:00Z",
@@ -368,6 +368,11 @@ It is the sole persistence mechanism for task state across agent sessions.
     {
       "at": "2026-04-20T10:11:00Z",
       "action": "Security approved PR #15 and applied security-approved; awaiting QA review",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T10:12:00Z",
+      "action": "QA failed PR #15 on the real one-shot CLI process model versus documented session-locked behavior; re-dispatched Builder for targeted rework",
       "by": "orchestrator-decky-secrets"
     }
   ]

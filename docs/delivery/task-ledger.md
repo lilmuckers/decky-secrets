@@ -216,8 +216,8 @@ It is the sole persistence mechanism for task state across agent sessions.
 {
   "task": "ISSUE-7",
   "state": "in_progress",
-  "current_action": "Security failed PR #13 with two blocking findings and Builder is reworking the existing PR.",
-  "next_action": "Await Builder callback for PR #13 fixes, then re-dispatch Security review.",
+  "current_action": "Security and QA both failed PR #13, and Builder is reworking the existing PR with the corroborated auth-state defect plus delete-on-failure fix.",
+  "next_action": "Await Builder callback for PR #13 fixes, then re-dispatch Security and QA review.",
   "owner": "builder-decky-secrets",
   "branch": "feat/issue-7-auth-backend",
   "pr": 13,
@@ -246,6 +246,11 @@ It is the sole persistence mechanism for task state across agent sessions.
     {
       "at": "2026-04-20T06:55:00Z",
       "action": "Security failed PR #13 with accessible-session and combined-failure deletion findings; re-dispatched Builder for rework",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T06:56:00Z",
+      "action": "QA failed PR #13 on the same accessible-session defect and requested regression coverage for usable post-PIN accessible-session access",
       "by": "orchestrator-decky-secrets"
     }
   ]

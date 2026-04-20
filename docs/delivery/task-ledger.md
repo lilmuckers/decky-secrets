@@ -282,12 +282,12 @@ It is the sole persistence mechanism for task state across agent sessions.
 {
   "task": "ISSUE-5",
   "state": "needs_review",
-  "current_action": "Builder updated PR #14 after the timeout-boundary fix and Security re-review is now in progress while qa-approved remains present.",
-  "next_action": "Await Security callback for the updated PR #14, then route to Spec if Security passes.",
-  "owner": "security-decky-secrets",
+  "current_action": "PR #14 has qa-approved and security-approved, and Spec final review is now in progress.",
+  "next_action": "Await Spec callback for PR #14, then merge immediately if spec-satisfied is applied and required checks are passing.",
+  "owner": "spec-decky-secrets",
   "branch": "feat/issue-5-clipboard-copy",
   "pr": 14,
-  "expected_callback_at": "2026-04-20T10:05:00Z",
+  "expected_callback_at": "2026-04-20T11:20:00Z",
   "history": [
     {
       "at": "2026-04-20T07:08:00Z",
@@ -317,6 +317,11 @@ It is the sole persistence mechanism for task state across agent sessions.
     {
       "at": "2026-04-20T09:49:00Z",
       "action": "Resumed session, accepted Builder's timeout-boundary fix for PR #14, and re-dispatched Security review while preserving qa-approved",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T09:52:00Z",
+      "action": "Security approved PR #14 and applied security-approved; dispatched Spec for final review",
       "by": "orchestrator-decky-secrets"
     }
   ]

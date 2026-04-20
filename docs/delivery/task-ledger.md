@@ -215,13 +215,13 @@ It is the sole persistence mechanism for task state across agent sessions.
 ```json
 {
   "task": "ISSUE-7",
-  "state": "in_progress",
-  "current_action": "Security and QA both failed PR #13, and Builder is reworking the existing PR with the corroborated auth-state defect plus delete-on-failure fix.",
-  "next_action": "Await Builder callback for PR #13 fixes, then re-dispatch Security and QA review.",
-  "owner": "builder-decky-secrets",
+  "state": "needs_review",
+  "current_action": "Builder updated PR #13 after the rework pass, and QA plus Security re-review are now in progress.",
+  "next_action": "Await QA and Security callbacks for the updated PR #13, then route to Spec if both pass.",
+  "owner": "qa-decky-secrets",
   "branch": "feat/issue-7-auth-backend",
   "pr": 13,
-  "expected_callback_at": "2026-04-20T09:15:00Z",
+  "expected_callback_at": "2026-04-20T09:20:00Z",
   "history": [
     {
       "at": "2026-04-20T06:40:07Z",
@@ -251,6 +251,11 @@ It is the sole persistence mechanism for task state across agent sessions.
     {
       "at": "2026-04-20T06:56:00Z",
       "action": "QA failed PR #13 on the same accessible-session defect and requested regression coverage for usable post-PIN accessible-session access",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T06:59:00Z",
+      "action": "Builder updated PR #13 after rework; re-dispatched QA and Security for review",
       "by": "orchestrator-decky-secrets"
     }
   ]

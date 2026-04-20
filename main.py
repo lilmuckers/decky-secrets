@@ -1,17 +1,9 @@
 from dataclasses import asdict, dataclass
-from typing import Literal
 
 import decky
 
-from decky_secrets.vault import VAULT_FILE_NAME, VaultFileStore
-
-VaultState = Literal[
-    "uninitialized_vault",
-    "decrypt_required",
-    "session_locked",
-    "accessible",
-    "relocking",
-]
+from decky_secrets.auth import VaultAuthManager, VaultState
+from decky_secrets.vault import VAULT_FILE_NAME
 
 
 @dataclass(frozen=True)
@@ -23,26 +15,32 @@ class RuntimeStatus:
     notes: list[str]
     vault_path: str
     vault_exists: bool
+    auth_locked_until: str | None
+    session_access_expires_at: str | None
+    full_relock_at: str | None
 
 
 class Plugin:
     def __init__(self) -> None:
-        self._store = VaultFileStore()
+        self._auth = VaultAuthManager()
 
     async def get_status(self) -> dict:
-        vault_exists = self._store.vault_path.exists()
+        auth_status = self._auth.get_status()
         status = RuntimeStatus(
             plugin="decky-secrets",
-            version="0.0.2",
-            vault_state="decrypt_required" if vault_exists else "uninitialized_vault",
-            backend_model="python-vault-persistence",
+            version="0.0.3",
+            vault_state=auth_status.state,
+            backend_model="python-auth-backend",
             notes=[
-                "Vault persistence and encrypted blob storage are now implemented in the Python backend.",
-                "Master-password and PIN/session unlock state handling remain intentionally separate from this slice.",
+                "Vault persistence, lock-state handling, and authentication throttling now live in the Python backend.",
+                "Restart and full-relock paths require the master password again by design.",
                 f"Vault file name is reserved as {VAULT_FILE_NAME} under ~/.decky-secrets/.",
             ],
-            vault_path=str(self._store.vault_path),
-            vault_exists=vault_exists,
+            vault_path=str(self._auth.store.vault_path),
+            vault_exists=auth_status.vault_exists,
+            auth_locked_until=auth_status.auth_locked_until,
+            session_access_expires_at=auth_status.session_access_expires_at,
+            full_relock_at=auth_status.full_relock_at,
         )
         return asdict(status)
 

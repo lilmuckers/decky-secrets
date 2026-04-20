@@ -134,16 +134,18 @@ For the current scaffold plus persistence/auth/Decky UI slices, verify the follo
 5. `python3 -m decky_secrets list` shows non-secret record fields only after successful master-password and PIN auth in the current invocation
 6. Decky Loader shows the `Decky Secrets` plugin in the sidebar
 7. opening the plugin renders the first-run, full-lock, session-lock, and accessible screens successfully
-8. when backend state is `session_locked`, the first visible UI is the numeric PIN pad and a correct PIN unlocks immediately on the final required digit
+8. when backend state is `session_locked`, the first visible UI is the numeric PIN pad, a correct PIN unlocks immediately on the final required digit, and a wrong PIN produces an unmistakable visible failure cue
 9. routine list browsing and record detail navigation do not echo secret values in list/detail payloads until an explicit reveal or copy action is taken
-10. record detail keeps the password masked by default and re-masks when the press-and-hold reveal stops
-11. add, edit, and delete flows succeed through the backend validation/auth boundary and surface duplicate/missing-record failures without exposing secret values
-12. when backend state is `accessible`, using the record copy action shows copy confirmation plus the timeout cue without echoing the secret value
-13. the UI describes clipboard clearing as best effort rather than a guaranteed wipe
-14. fresh copy, reveal, edit, and delete actions are blocked when backend state is `decrypt_required` or `session_locked`
-15. CLI invalid usage, duplicate keys, missing keys, auth failures, and prompt-unavailable failures exit non-zero with clear non-secret messages
-16. a backend-created vault file remains encrypted at rest and is not readable as plaintext JSON secret data
-17. backend timeout and restart tests prove the session window expires back to `session_locked` and the full relock path returns to `decrypt_required`
+10. the unlocked list keeps password copy as the default row action and exposes record detail through a dedicated trailing details affordance
+11. record detail keeps the password masked by default and re-masks when the press-and-hold reveal stops
+12. add, edit, and delete flows succeed through the backend validation/auth boundary and surface duplicate/missing-record failures without exposing secret values
+13. visible UI wording distinguishes session lock from restart or full relock so first-use Decky users are told that master password is required again after restart or full relock
+14. when backend state is `accessible`, using the record copy action shows copy confirmation plus the timeout cue without echoing the secret value
+15. the UI describes clipboard clearing as best effort rather than a guaranteed wipe
+16. fresh copy, reveal, edit, and delete actions are blocked when backend state is `decrypt_required` or `session_locked`
+17. CLI invalid usage, duplicate keys, missing keys, auth failures, and prompt-unavailable failures exit non-zero with clear non-secret messages
+18. a backend-created vault file remains encrypted at rest and is not readable as plaintext JSON secret data
+19. backend timeout and restart tests prove the session window expires back to `session_locked` and the full relock path returns to `decrypt_required`
 
 ## Product direction
 

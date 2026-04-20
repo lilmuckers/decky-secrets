@@ -96,6 +96,7 @@ function Content() {
   const [revealedSecret, setRevealedSecret] = useState<string | null>(null);
   const [pinValue, setPinValue] = useState("");
   const [pinFeedback, setPinFeedback] = useState<string | null>(null);
+  const [pinFailureFlash, setPinFailureFlash] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingKey, setEditingKey] = useState<string | null>(null);
   const [draft, setDraft] = useState<RecordDraft>(emptyDraft());
@@ -217,6 +218,7 @@ function Content() {
       setMasterPassword("");
       setPinValue("");
       setPinFeedback(null);
+      setPinFailureFlash(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Vault unlock failed.");
     } finally {
@@ -231,11 +233,14 @@ function Content() {
       const nextStatus = await unlockWithPin(candidatePin);
       setPinValue("");
       setPinFeedback(null);
+      setPinFailureFlash(false);
       applyStatus(nextStatus);
       await refreshRecords();
     } catch (err) {
+      const message = err instanceof Error ? err.message : "PIN unlock failed.";
       setPinValue("");
-      setPinFeedback(err instanceof Error ? err.message : "PIN unlock failed.");
+      setPinFeedback(message);
+      setPinFailureFlash(!message.includes("temporarily blocked"));
       await refresh();
     } finally {
       setSubmitting(false);
@@ -249,6 +254,7 @@ function Content() {
     const nextPin = `${pinValue}${digit}`.slice(0, status.session_pin_length);
     setPinValue(nextPin);
     setPinFeedback(null);
+    setPinFailureFlash(false);
     if (shouldAttemptPinUnlock(nextPin, status.session_pin_length)) {
       await tryPinUnlock(nextPin);
     }
@@ -260,6 +266,7 @@ function Content() {
     }
     setPinValue((current) => current.slice(0, -1));
     setPinFeedback(null);
+    setPinFailureFlash(false);
   };
 
   const handleCopy = async (record: RecordSummary) => {
@@ -387,6 +394,7 @@ function Content() {
       applyStatus(nextStatus);
       setPinValue("");
       setPinFeedback(null);
+      setPinFailureFlash(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Vault lock failed.");
     } finally {
@@ -397,6 +405,15 @@ function Content() {
   useEffect(() => {
     void refresh();
   }, []);
+
+  useEffect(() => {
+    if (!pinFailureFlash) {
+      return undefined;
+    }
+
+    const timeout = window.setTimeout(() => setPinFailureFlash(false), 900);
+    return () => window.clearTimeout(timeout);
+  }, [pinFailureFlash]);
 
   useEffect(() => {
     const handleForegroundReentry = () => {
@@ -474,20 +491,35 @@ function Content() {
 
       {status?.vault_state === "decrypt_required" && (
         <PanelSection title="Unlock vault">
-          <PanelSectionRow><div>Master password required. PIN unlock works only after the vault has been opened in this plugin session.</div></PanelSectionRow>
+          <PanelSectionRow><div>Master password required. PIN unlock works only after the vault has been opened in this plugin session, and restart or full relock requires the master password again.</div></PanelSectionRow>
           <PanelSectionRow><TextField label="Master password" bIsPassword value={masterPassword} onChange={(e: any) => setMasterPassword(e.target.value)} /></PanelSectionRow>
           <PanelSectionRow><ButtonItem layout="below" onClick={() => void handleMasterUnlock()} disabled={submitting}>Unlock</ButtonItem></PanelSectionRow>
         </PanelSection>
       )}
 
       {status?.vault_state === "session_locked" && (
-        <PanelSection title="Enter PIN">
-          <PanelSectionRow><div>{buildPinDots(pinValue, status.session_pin_length ?? 4).join(" ")}</div></PanelSectionRow>
-          <PanelSectionRow><div>Enter {status.session_pin_length ?? "4 to 6"} digit PIN. Unlock happens automatically on the final digit.</div></PanelSectionRow>
+        <PanelSection title="Enter session PIN">
+          <PanelSectionRow>
+            <div
+              style={{
+                width: "100%",
+                padding: "12px",
+                borderRadius: "8px",
+                background: pinFailureFlash ? "rgba(200, 48, 48, 0.25)" : "rgba(255, 255, 255, 0.04)",
+                border: pinFailureFlash ? "2px solid rgba(255, 96, 96, 0.9)" : "1px solid rgba(255, 255, 255, 0.08)",
+                color: pinFailureFlash ? "#ffb3b3" : "inherit",
+                textAlign: "center",
+              }}
+            >
+              <div style={{ fontSize: "20px", marginBottom: "6px" }}>{buildPinDots(pinValue, status.session_pin_length ?? 4).join(" ")}</div>
+              <div>{pinFailureFlash ? "Wrong PIN" : `Enter ${status.session_pin_length ?? "4 to 6"} digit PIN. Unlock happens automatically on the final digit.`}</div>
+            </div>
+          </PanelSectionRow>
+          <PanelSectionRow><div>Session lock returns here for PIN re-entry. Restart or full relock requires the master password again.</div></PanelSectionRow>
           <PanelSectionRow><div>{inlineLockoutMessage ?? pinFeedback ?? ""}</div></PanelSectionRow>
           {[ ["1", "2", "3"], ["4", "5", "6"], ["7", "8", "9"], ["⌫", "0"] ].map((row, index) => (
             <PanelSectionRow key={`pin-row-${index}`}>
-              <div style={{ display: "flex", gap: "8px", width: "100%" }}>
+              <div style={{ display: "flex", gap: "8px", width: "100%", opacity: pinFailureFlash ? 0.92 : 1 }}>
                 {row.map((value) => (
                   <div key={value} style={{ flex: 1 }}>
                     <ButtonItem
@@ -517,20 +549,30 @@ function Content() {
           <PanelSectionRow>
             <div style={{ display: "flex", gap: "8px", width: "100%" }}>
               <div style={{ flex: 1 }}><ButtonItem layout="below" onClick={beginAdd}>Add record</ButtonItem></div>
-              <div style={{ flex: 1 }}><ButtonItem layout="below" onClick={() => void handleManualLock()}>Lock</ButtonItem></div>
+              <div style={{ flex: 1 }}><ButtonItem layout="below" onClick={() => void handleManualLock()}>Session lock</ButtonItem></div>
             </div>
           </PanelSectionRow>
+          <PanelSectionRow><div>Default tap copies the password. Session lock returns to PIN, while restart or full relock requires the master password again.</div></PanelSectionRow>
           {filteredRecords.length === 0 ? (
             <PanelSectionRow><div>No matching records yet.</div></PanelSectionRow>
           ) : (
             filteredRecords.map((record) => (
               <PanelSectionRow key={record.key}>
-                <div style={{ width: "100%" }}>
-                  <ButtonItem layout="below" onClick={() => void handleCopy(record)} disabled={copyingRecordKey === record.key}>
-                    {copyingRecordKey === record.key ? `Copying ${record.name}...` : record.name}
-                  </ButtonItem>
-                  <div>{record.username ?? "No username"}</div>
-                  <ButtonItem layout="below" onClick={() => void loadDetail(record.key)}>Details</ButtonItem>
+                <div style={{ display: "flex", gap: "8px", width: "100%", alignItems: "stretch" }}>
+                  <div style={{ flex: 1 }}>
+                    <ButtonItem layout="below" onClick={() => void handleCopy(record)} disabled={copyingRecordKey === record.key}>
+                      {copyingRecordKey === record.key ? `Copying ${record.name}...` : record.name}
+                    </ButtonItem>
+                    <div>{record.username ?? "No username"}</div>
+                  </div>
+                  <button
+                    aria-label={`View details for ${record.name}`}
+                    title={`View details for ${record.name}`}
+                    onClick={() => void loadDetail(record.key)}
+                    style={{ minWidth: "52px", padding: "0 12px", borderRadius: "8px" }}
+                  >
+                    ›
+                  </button>
                 </div>
               </PanelSectionRow>
             ))
@@ -573,7 +615,7 @@ function Content() {
               <PanelSectionRow>
                 <div style={{ display: "flex", gap: "8px", width: "100%" }}>
                   <div style={{ flex: 1 }}><ButtonItem layout="below" onClick={() => { setSelectedRecordKey(null); setSelectedRecordDetail(null); }}>Back to list</ButtonItem></div>
-                  <div style={{ flex: 1 }}><ButtonItem layout="below" onClick={() => void handleManualLock()}>Lock vault</ButtonItem></div>
+                  <div style={{ flex: 1 }}><ButtonItem layout="below" onClick={() => void handleManualLock()}>Session lock</ButtonItem></div>
                 </div>
               </PanelSectionRow>
             </>

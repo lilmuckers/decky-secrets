@@ -134,6 +134,17 @@ Some items below are settled decisions for the MVP. Others are explicit open ass
 - If the current dependency stack cannot satisfy those constraints cleanly, reducing or replacing the incompatible runtime dependency surface is preferred over shipping a weaker security posture.
 - Reason: the observed `cryptography` import failure was a packaging/runtime mismatch, not evidence that the security baseline should be weakened.
 
+### D-021: Build automation should produce a Decky Loader friendly plugin zip from GitHub
+- GitHub Actions should build the plugin and package a Decky Loader friendly zip artifact from the repository state under test.
+- The packaged artifact should include the files required for Decky Loader consumption and exclude repository-only development files that are not part of the shipped plugin.
+- Workflow-visible artifacts should make packaging results reviewable from GitHub without requiring a local rebuild.
+- Reason: packaging is now part of the practical delivery path, not just a local developer convenience.
+
+### D-022: Release tagging stays a release-manager responsibility after automation lands on main
+- Build/package automation may publish workflow artifacts, but release-manager tagging remains an explicit follow-up responsibility rather than an automatic side effect of every merge.
+- Once the relevant automation path is merged to `main`, release coordination should tag the result through the normal release-manager flow.
+- Reason: this keeps build verification and release coordination separate while still making the tagging expectation durable and visible.
+
 ## Current assumptions to validate
 
 ### A-001: The originally chosen packaged crypto stack was not cleanly compatible with the real Steam Deck runtime

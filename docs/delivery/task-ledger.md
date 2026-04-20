@@ -282,14 +282,19 @@ It is the sole persistence mechanism for task state across agent sessions.
 {
   "task": "ISSUE-5",
   "state": "in_progress",
-  "current_action": "Security is readying issue #5 for build handoff after validator failures on security/readiness sections.",
-  "next_action": "Await Security callback, rerun ready validator, then dispatch Builder if the issue passes.",
-  "owner": "security-decky-secrets",
-  "expected_callback_at": "2026-04-20T08:45:00Z",
+  "current_action": "Security completed issue #5 readiness repair and Builder is now implementing the clipboard copy slice.",
+  "next_action": "Await Builder callback with branch, PR number, and test results for issue #5.",
+  "owner": "builder-decky-secrets",
+  "expected_callback_at": "2026-04-20T09:00:00Z",
   "history": [
     {
       "at": "2026-04-20T07:08:00Z",
       "action": "Merged PR #13 completed issue #7; issue #5 was the next lowest-numbered ready-for-build issue, but validator failures routed it to Security for readiness repair before Builder handoff",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T07:10:00Z",
+      "action": "Security completed issue #5 readiness repair; validation passed and Builder was dispatched",
       "by": "orchestrator-decky-secrets"
     }
   ]

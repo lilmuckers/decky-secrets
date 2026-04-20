@@ -11,10 +11,39 @@ from scripts.package_plugin import package_plugin
 
 class PackagePluginTests(unittest.TestCase):
     def test_package_plugin_includes_runtime_files_and_excludes_repo_only_files(self) -> None:
-        repo_root = Path(__file__).resolve().parents[1]
-
         with tempfile.TemporaryDirectory() as temp_dir:
-            package_root, zip_path, manifest_path = package_plugin(repo_root, Path(temp_dir))
+            repo_root = Path(temp_dir) / "repo"
+            repo_root.mkdir()
+
+            (repo_root / "main.py").write_text("print('main')\n", encoding="utf-8")
+            (repo_root / "plugin.json").write_text('{"name": "Decky Secrets"}\n', encoding="utf-8")
+            (repo_root / "package.json").write_text('{"name": "decky-secrets"}\n', encoding="utf-8")
+            (repo_root / "requirements.txt").write_text("cryptography>=42,<45\n", encoding="utf-8")
+
+            decky_package = repo_root / "decky_secrets"
+            decky_package.mkdir()
+            (decky_package / "__init__.py").write_text("__all__ = []\n", encoding="utf-8")
+            (decky_package / "__main__.py").write_text("print('cli')\n", encoding="utf-8")
+            (decky_package / "auth.py").write_text("AUTH = True\n", encoding="utf-8")
+            (decky_package / "cli.py").write_text("CLI = True\n", encoding="utf-8")
+            (decky_package / "clipboard.py").write_text("CLIPBOARD = True\n", encoding="utf-8")
+            (decky_package / "vault.py").write_text("VAULT = True\n", encoding="utf-8")
+
+            pycache_dir = decky_package / "__pycache__"
+            pycache_dir.mkdir()
+            (pycache_dir / "__init__.cpython-313.pyc").write_bytes(b"ignored")
+
+            dist_dir = repo_root / "dist"
+            dist_dir.mkdir()
+            (dist_dir / "index.js").write_text("console.log('built');\n", encoding="utf-8")
+            (dist_dir / "index.js.map").write_text("{}\n", encoding="utf-8")
+
+            (repo_root / "tests").mkdir()
+            ((repo_root / "tests") / "test_vault.py").write_text("pass\n", encoding="utf-8")
+            (repo_root / "docs").mkdir()
+            ((repo_root / "docs") / "spec-wiki-architecture.md").write_text("docs\n", encoding="utf-8")
+
+            package_root, zip_path, manifest_path = package_plugin(repo_root, Path(temp_dir) / "out")
 
             self.assertTrue((package_root / "main.py").is_file())
             self.assertTrue((package_root / "plugin.json").is_file())

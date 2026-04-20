@@ -4,7 +4,7 @@ A Decky Loader plugin for Steam Deck / SteamOS that will eventually store user s
 
 ## Current status
 
-Issues #3 and #4 establish the initial Decky plugin scaffold plus the Python encrypted-vault persistence layer.
+Issues #3, #4, and #7 establish the initial Decky plugin scaffold, the Python encrypted-vault persistence layer, and the backend lock/auth state model.
 
 What exists now:
 - Decky plugin metadata in `plugin.json`
@@ -14,13 +14,14 @@ What exists now:
 - Rollup and TypeScript build config for the current Decky template toolchain
 - a placeholder Decky panel that loads and shows backend status
 - encrypted-at-rest vault creation and load support at `~/.decky-secrets/vault`
-- unit tests for blob shape, permissions, and password-based decrypt
+- backend lock-state handling for `decrypt_required`, `session_locked`, and `accessible`
+- shared auth throttling and full-relock/session-timeout behavior for backend callers
+- unit tests for blob shape, permissions, decrypt, auth transitions, restart/full-lock behavior, and throttling
 
 What is intentionally **not** implemented yet:
-- password unlock flow orchestration
-- PIN unlock/session-lock flow orchestration
 - clipboard copy or wipe behavior
 - Decky record-management UI flows
+- biometric unlock
 - CLI ingest or broader record-management commands
 
 ## Repository layout
@@ -28,7 +29,7 @@ What is intentionally **not** implemented yet:
 ```text
 .
 ├── backend/              # reserved for future backend build artifacts/source
-├── decky_secrets/        # Python vault persistence and crypto module
+├── decky_secrets/        # Python vault persistence, lock-state, and auth modules
 ├── docs/                 # spec, architecture, decisions, delivery state
 ├── main.py               # live Decky Python backend entrypoint
 ├── package.json          # frontend toolchain config
@@ -36,6 +37,7 @@ What is intentionally **not** implemented yet:
 ├── requirements.txt      # Python backend dependency pinning
 ├── rollup.config.js      # Decky Rollup build config
 ├── src/index.tsx         # placeholder Decky sidebar UI
+├── tests/test_auth.py    # Python unit tests for lock/auth behavior
 ├── tests/test_vault.py   # Python unit tests for persistence layer
 └── tsconfig.json         # TypeScript compiler settings
 ```
@@ -106,15 +108,16 @@ After copying the plugin files onto the device:
 
 ## Verify
 
-For the current scaffold plus persistence slice, verify the following:
+For the current scaffold plus persistence/auth slices, verify the following:
 
 1. `pnpm install` succeeds on a fresh checkout
 2. `pnpm build` produces `dist/index.js`
-3. `python3 -m unittest tests.test_vault` passes
+3. `python3 -m unittest tests.test_vault tests.test_auth` passes
 4. Decky Loader shows the `Decky Secrets` plugin in the sidebar
 5. opening the plugin renders the placeholder panel successfully
-6. the panel shows either `uninitialized_vault` or `decrypt_required`, depending on whether `~/.decky-secrets/vault` already exists
+6. the panel shows `uninitialized_vault`, `decrypt_required`, `session_locked`, or `accessible` based on backend auth state
 7. a backend-created vault file remains encrypted at rest and is not readable as plaintext JSON secret data
+8. backend timeout and restart tests prove the session window expires back to `session_locked` and the full relock path returns to `decrypt_required`
 
 ## Product direction
 

@@ -403,13 +403,13 @@ It is the sole persistence mechanism for task state across agent sessions.
 ```json
 {
   "task": "ISSUE-9",
-  "state": "in_progress",
-  "current_action": "QA failed PR #16 on visible PIN failure cue, dedicated trailing details affordance, and clearer session-lock versus full-lock wording; Builder rework is now in progress.",
-  "next_action": "Await Builder callback on PR #16 targeted rework, then re-dispatch QA while preserving security-approved if the changes stay within QA scope.",
-  "owner": "builder-decky-secrets",
+  "state": "needs_review",
+  "current_action": "Builder updated PR #16 with the targeted QA fixes and QA re-review is now in progress while security-approved remains intact.",
+  "next_action": "Await QA re-review callback for PR #16, then route to Spec if QA passes.",
+  "owner": "qa-decky-secrets",
   "branch": "feat/issue-9-record-management-ui",
   "pr": 16,
-  "expected_callback_at": "2026-04-20T13:40:00Z",
+  "expected_callback_at": "2026-04-20T13:30:00Z",
   "history": [
     {
       "at": "2026-04-20T10:24:00Z",
@@ -434,6 +434,11 @@ It is the sole persistence mechanism for task state across agent sessions.
     {
       "at": "2026-04-20T12:00:00Z",
       "action": "QA failed PR #16 on visible PIN failure cue, dedicated trailing details affordance, and clearer session-lock versus full-lock wording; re-dispatched Builder for targeted rework",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T12:06:00Z",
+      "action": "Builder updated PR #16 with targeted QA fixes and QA was re-dispatched while preserving security-approved",
       "by": "orchestrator-decky-secrets"
     }
   ]

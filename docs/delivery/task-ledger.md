@@ -403,15 +403,32 @@ It is the sole persistence mechanism for task state across agent sessions.
 ```json
 {
   "task": "ISSUE-9",
-  "state": "in_progress",
-  "current_action": "Security is readying issue #9 for build handoff after validator failures on security/readiness sections.",
-  "next_action": "Await Security callback, rerun ready validator, then dispatch Builder if the issue passes.",
-  "owner": "security-decky-secrets",
-  "expected_callback_at": "2026-04-20T11:55:00Z",
+  "state": "needs_review",
+  "current_action": "Security approved PR #16 and QA review remains in progress.",
+  "next_action": "Await QA callback for PR #16, then route to Spec if QA also passes.",
+  "owner": "qa-decky-secrets",
+  "branch": "feat/issue-9-record-management-ui",
+  "pr": 16,
+  "expected_callback_at": "2026-04-20T13:15:00Z",
   "history": [
     {
       "at": "2026-04-20T10:24:00Z",
       "action": "Merged PR #15 completed issue #8; issue #9 was the next lowest-numbered ready-for-build issue, but validator failures routed it to Security for readiness repair before Builder handoff",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T10:26:00Z",
+      "action": "Security completed issue #9 readiness repair; validation passed and Builder was dispatched",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T11:50:00Z",
+      "action": "Builder reported NEEDS_REVIEW with PR #16 for issue #9; dispatched QA and Security review",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T11:54:00Z",
+      "action": "Security approved PR #16 and applied security-approved; awaiting QA review",
       "by": "orchestrator-decky-secrets"
     }
   ]

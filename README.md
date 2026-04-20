@@ -99,7 +99,7 @@ printf 'stdin-secret' | python3 -m decky_secrets update --key battle-net --secre
 python3 -m decky_secrets rm --key battle-net
 ```
 
-The CLI uses the same auth boundary as the backend. When fully locked it prompts for the master password and then the session PIN. When stdin is reserved for `--secret-stdin`, it prefers `/dev/tty` for auth prompts and fails cleanly if a secure prompt path is unavailable.
+The CLI uses the same auth boundary as the backend, but the shipped `python3 -m decky_secrets ...` surface is a one-shot process model. In practice each CLI invocation starts from a fresh auth manager, so each command conservatively prompts for the master password and then the session PIN rather than reusing a session-locked state across invocations. When stdin is reserved for `--secret-stdin`, it prefers `/dev/tty` for auth prompts and fails cleanly if a secure prompt path is unavailable.
 
 
 On a Steam Deck with Decky Loader installed, copy this repository into the Decky plugins directory under the plugin folder name `decky-secrets`.
@@ -130,13 +130,13 @@ For the current scaffold plus persistence/auth slices, verify the following:
 2. `pnpm build` produces `dist/index.js`
 3. `python3 -m unittest tests.test_vault tests.test_auth tests.test_clipboard tests.test_cli` passes
 4. `pnpm test:frontend` passes
-5. `python3 -m decky_secrets list` shows non-secret record fields only after successful auth
+5. `python3 -m decky_secrets list` shows non-secret record fields only after successful master-password and PIN auth in the current invocation
 6. Decky Loader shows the `Decky Secrets` plugin in the sidebar
 7. opening the plugin renders the panel successfully
 8. when backend state is `accessible`, using the record copy action shows copy confirmation plus the timeout cue without echoing the secret value
 9. the UI describes clipboard clearing as best effort rather than a guaranteed wipe
 10. fresh copy actions are blocked when backend state is `decrypt_required` or `session_locked`
-11. CLI invalid usage, duplicate keys, missing keys, and auth failures exit non-zero with clear non-secret messages
+11. CLI invalid usage, duplicate keys, missing keys, auth failures, and prompt-unavailable failures exit non-zero with clear non-secret messages
 12. a backend-created vault file remains encrypted at rest and is not readable as plaintext JSON secret data
 13. backend timeout and restart tests prove the session window expires back to `session_locked` and the full relock path returns to `decrypt_required`
 

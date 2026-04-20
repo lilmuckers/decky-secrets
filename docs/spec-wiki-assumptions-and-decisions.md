@@ -95,12 +95,12 @@ Some items below are settled decisions for the MVP. Others are explicit open ass
 - Reason: this is simple to serialize in Python, easy to migrate later, and matches the CLI and UI needs without premature complexity.
 
 ### D-015: The MVP CLI auth model is interactive and conservative by default
-- Fully locked vault access prompts for the master password.
-- Session-locked vault access prompts for the PIN.
+- The shipped CLI is a one-shot process model rather than a long-lived shared session.
+- Each `python3 -m decky_secrets ...` invocation therefore starts from a fresh auth manager and conservatively prompts for the master password and then the PIN.
 - Prompts should use non-echo terminal input.
 - When `--secret-stdin` is in use, prompts should read from `/dev/tty` when available.
 - If secure interactive prompting is not possible, the CLI should fail rather than guess.
-- Reason: this minimizes secret leakage and avoids unsafe prompt behavior in shell and SSH workflows.
+- Reason: this minimizes secret leakage, avoids unsafe prompt behavior in shell and SSH workflows, and keeps the shipped CLI claims aligned with the actual one-shot invocation model.
 
 ### D-016: Local secret exposure is bounded, not eliminated
 - Clipboard copy is an intentional exposure event with mandatory best-effort auto-clear.
@@ -167,6 +167,7 @@ These decisions imply:
 - copy flow work must describe clipboard wiping as configurable best-effort behavior
 - CLI work must support both direct secret arguments and stdin-based secret entry
 - CLI auth work should assume an interactive `/dev/tty` prompt model first
+- CLI docs and tests must not claim cross-invocation session-lock reuse unless the implementation truly persists/shared that state
 
 ## Review trigger
 This page should be revised whenever any of the following change materially:

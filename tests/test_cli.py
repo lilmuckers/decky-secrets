@@ -148,17 +148,14 @@ class VaultCliTests(unittest.TestCase):
         self.assertEqual(stdout.getvalue(), "")
         self.assertIn("usage:", stderr.getvalue())
 
-    def test_session_locked_state_requires_only_pin_when_master_password_cached(self) -> None:
-        auth = VaultAuthManager(store=self.store)
-        auth.unlock_with_password(master_password="correct horse battery staple", caller="cli")
-        app, stdout, stderr = self._make_app(responses=["1234"], auth=auth)
-        app._cache_master_password("correct horse battery staple")
+    def test_one_shot_cli_process_requires_master_password_then_pin(self) -> None:
+        app, stdout, stderr = self._make_app(responses=["correct horse battery staple", "1234"])
 
         exit_code = app.run(["list"])
 
         self.assertEqual(exit_code, 0)
         self.assertEqual(stderr.getvalue(), "")
-        self.assertEqual([request.prompt for request in app.prompter.requests], ["PIN: "])
+        self.assertEqual([request.prompt for request in app.prompter.requests], ["Master password: ", "PIN: "])
         self.assertIn("battle-net\tBattle.net\tplayer123", stdout.getvalue())
 
     def test_auth_failures_flow_through_shared_lockout(self) -> None:

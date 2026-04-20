@@ -53,15 +53,16 @@ Some items below are settled decisions for the MVP. Others are explicit open ass
   - session lock, where a PIN gate blocks access to vault contents and the vault remains PIN-encrypted in memory
 - Reason: this matches the intended UX and creates a clean path for later biometric support.
 
-### D-009: The vault crypto profile and library stack are fixed for MVP
+### D-009: The vault crypto profile is fixed for MVP, but the exact AES-GCM library is not
 - Encrypt the vault blob with AES-256-GCM.
 - Use Python `hashlib.pbkdf2_hmac` for PBKDF2-SHA-256 derivation.
-- Use the Python `cryptography` library for AES-GCM operations.
 - Use Python `secrets` for random salt, nonce, and recovery-key generation.
 - Derive the master-password key with PBKDF2-SHA-256 at 600,000 iterations and a random salt.
 - Derive the PIN key with PBKDF2-SHA-256 at 200,000 iterations and a separate random salt.
 - Use a fresh standard 96-bit AES-GCM nonce per encryption operation.
-- Reason: this gives the MVP a concrete and reviewable cryptographic baseline with an implementation path that fits Python cleanly.
+- The shipped backend may use any vetted AES-GCM implementation that is actually compatible with the Steam Deck / Decky runtime.
+- A packaged binary dependency that fails on-device because it requires an unavailable OpenSSL ABI is not an acceptable shipped MVP solution.
+- Reason: the crypto posture remains fixed, but the exact implementation library must follow the constraints of the real target runtime.
 
 ### D-010: Recovery key is user-held only
 - Recovery uses a 32-character base32 string grouped for readability.
@@ -121,14 +122,27 @@ Some items below are settled decisions for the MVP. Others are explicit open ass
 - No extra PIN-specific permanent lockout is required for MVP beyond shared temporary throttling and optional delete-on-failure.
 - Reason: this keeps the first release simpler while still putting meaningful friction in front of online guessing within the local trust model.
 
+### D-019: Steam Deck backend runtime compatibility is a hard ship gate
+- The packaged Python backend must load inside the real Decky plugin sandbox on Steam Deck.
+- Bundled Python code must satisfy Decky Loader import-path expectations for `main.py` and the backend package.
+- Real-device validation is required for backend import resolution and secure backend startup before backend-affecting work is considered complete.
+- Reason: local and CI validation already missed critical runtime failures that only appeared on an actual Steam Deck.
+
+### D-020: On-device OpenSSL ABI compatibility is part of the crypto implementation contract
+- The secure backend must not ship with bundled binary crypto artifacts that require an OpenSSL ABI unavailable in the target Steam Deck runtime.
+- Platform-specific packaging is acceptable only if it preserves the approved crypto profile and proves compatible on a real device.
+- If the current dependency stack cannot satisfy those constraints cleanly, reducing or replacing the incompatible runtime dependency surface is preferred over shipping a weaker security posture.
+- Reason: the observed `cryptography` import failure was a packaging/runtime mismatch, not evidence that the security baseline should be weakened.
+
 ## Current assumptions to validate
 
-### A-001: SteamOS / Decky can support the required crypto stack cleanly
-Assumption:
-- the target environment can support a vetted cryptographic implementation and necessary key-derivation functions without awkward packaging or runtime compromises
+### A-001: The originally chosen packaged crypto stack was not cleanly compatible with the real Steam Deck runtime
+Observed finding:
+- on-device testing disproved the earlier assumption that the initially packaged secure backend could rely on its current binary crypto dependency stack without runtime compromise
+- the packaged backend hit an OpenSSL ABI mismatch while importing `cryptography` on the Steam Deck device
 
 Why it matters:
-- if false, the chosen architecture may not be practical for the plugin runtime
+- compatibility work now needs explicit delivery slices and real-device validation rather than being treated as a hidden packaging detail
 
 ### A-002: Clipboard blanking is implementable as a reliable best-effort control
 Assumption:
@@ -162,7 +176,7 @@ These decisions imply:
 - architecture work must cover both full-lock and session-lock states
 - security investigation must treat clipboard exposure and in-memory accessible state as separate risks
 - plugin skeleton work should avoid hard-coding assumptions that prevent a second access-gate factor later
-- vault implementation work should assume `hashlib.pbkdf2_hmac`, `cryptography`, and `secrets`
+- vault implementation work should preserve the approved AES-GCM and PBKDF2 security profile while choosing a Steam Deck compatible crypto implementation strategy
 - vault persistence work should treat the best-guess JSON blob schema as the default starting point
 - copy flow work must describe clipboard wiping as configurable best-effort behavior
 - CLI work must support both direct secret arguments and stdin-based secret entry

@@ -83,7 +83,7 @@ Secondary flows:
 ## Test Strategy
 
 - **Required test types:** unit tests for vault logic, encryption boundary tests, clipboard timeout behavior tests, and integration tests for plugin state transitions where practical.
-- **Tooling:** to be selected once the Decky plugin stack is confirmed.
+- **Tooling:** the shipped backend must be validated against the real Steam Deck / Decky runtime, not only local or CI environments.
 - **Coverage expectations:** crypto-adjacent and state-transition behavior should be covered more heavily than cosmetic UI details.
 
 ## Acceptance Criteria
@@ -91,8 +91,10 @@ Secondary flows:
 Top-level success conditions for the first useful version:
 
 - User can create a local vault stored at `~/.decky-secrets/vault`.
+- The Decky plugin backend package loads on a real Steam Deck through Decky Loader without import-path hacks or packaged-module resolution failures.
 - Vault remains encrypted at rest as a single AES-256-GCM encrypted blob.
 - The master password key is derived with PBKDF2-SHA-256 at 600,000 iterations and a random salt.
+- The shipped secure backend must not depend on bundled binary crypto artifacts that require an OpenSSL ABI unavailable in the target Steam Deck / Decky runtime.
 - A fresh standard 96-bit AES-GCM nonce is used for each encryption operation.
 - User must use a master password to decrypt the vault on first unlock after boot and after full relock.
 - A PIN gate is required for session access after password unlock.
@@ -117,6 +119,7 @@ Top-level success conditions for the first useful version:
 - Delete-on-failure is configurable, warns users clearly, and is off by default; if enabled, the default destructive threshold is 40 combined authentication failures.
 - The frontend may receive decrypted private values only for explicit viewing or clipboard-copy workflows.
 - No secret material is intentionally sent off-device.
+- Backend-affecting work is not considered done until the packaged plugin has been smoke-tested on a real Steam Deck through Decky Loader for import resolution and secure backend startup.
 
 ## Current delivery intent
 

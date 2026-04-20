@@ -35,7 +35,7 @@ The CLI is an additional local-management surface, not a separate storage path o
 - The vault must be cryptographically protected at rest as a single versioned encrypted blob with minimal cleartext metadata.
 - Use **AES-256-GCM** for vault encryption.
 - Use Python `hashlib.pbkdf2_hmac` for PBKDF2-SHA-256 key derivation.
-- Use the Python `cryptography` library for AES-256-GCM operations.
+- Use a Steam Deck compatible AES-256-GCM implementation for vault encryption operations.
 - Use Python `secrets` for random salt, nonce, and recovery-key generation.
 - Derive the master-password key with **PBKDF2-SHA-256** at **600,000 iterations** and a separate random salt.
 - Use a fresh standard **96-bit AES-GCM nonce** for each encryption operation.
@@ -43,6 +43,13 @@ The CLI is an additional local-management surface, not a separate storage path o
 - A password is also required again after the vault has fully re-locked following a configurable inactivity timeout.
 - The password-based unlock path is the root decrypt capability for the MVP.
 - Recommended blob shape: a small header with version, KDF metadata, nonce, and ciphertext, with secret-bearing data kept inside the encrypted payload.
+
+### Decky Python runtime compatibility
+- The packaged Python backend must load inside the real Decky plugin sandbox on Steam Deck, not only in local development or CI.
+- Bundled Python modules must be arranged so `main.py` can import the backend package successfully under Decky Loader's plugin entrypoint expectations.
+- The shipped secure backend must not depend on bundled binary crypto artifacts that require a newer OpenSSL ABI than the target Steam Deck runtime provides.
+- Platform-specific packaging is acceptable only if it preserves the approved crypto profile and is validated on a real Steam Deck device.
+- Real-device compatibility validation is a release gate for backend-affecting changes, especially import resolution and secure backend startup.
 
 ### Best-guess vault blob schema
 A good MVP best-guess schema is:

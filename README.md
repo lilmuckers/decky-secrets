@@ -4,12 +4,13 @@ A Decky Loader plugin for Steam Deck / SteamOS that will eventually store user s
 
 ## Current status
 
-Issues #3, #4, #5, #7, #8, and #9 establish the initial Decky plugin scaffold, the Python encrypted-vault persistence layer, the scoped clipboard copy flow, the backend lock/auth state model, the local CLI command surface, and the first Decky record-management UI flows.
+Issues #3, #4, #5, #7, #8, #9, and #17 establish the initial Decky plugin scaffold, the Python encrypted-vault persistence layer, the scoped clipboard copy flow, the backend lock/auth state model, the local CLI command surface, the first Decky record-management UI flows, and the packaged Decky backend import-layout fix for the plugin sandbox.
 
 What exists now:
 - Decky plugin metadata in `plugin.json`
 - a TypeScript frontend panel in `src/index.tsx`
 - a Python backend entrypoint in `main.py`
+- a backend bootstrap that places the plugin root on `sys.path` before importing bundled Python modules in the Decky sandbox
 - a testable Python vault module in `decky_secrets/vault.py`
 - a testable Python clipboard service in `decky_secrets/clipboard.py`
 - a local Python CLI in `decky_secrets/cli.py` with `add`, `list`, `rm`, and `update`
@@ -109,11 +110,14 @@ Typical layout on device:
 
 ```text
 ~/homebrew/plugins/decky-secrets/
+  decky_secrets/
   dist/
   main.py
   plugin.json
   package.json
 ```
+
+The bundled Python package directory must ship beside `main.py`. Decky Loader may import `main.py` from the plugin sandbox without first placing the plugin root on `sys.path`, so `main.py` now bootstraps its own plugin-root import path before importing `decky_secrets`.
 
 If you are developing from another machine, `rsync` or `scp` the repository contents over after building.
 
@@ -130,22 +134,23 @@ For the current scaffold plus persistence/auth/Decky UI slices, verify the follo
 1. `pnpm install` succeeds on a fresh checkout
 2. `pnpm build` produces `dist/index.js`
 3. `python3 -m unittest tests.test_vault tests.test_auth tests.test_clipboard tests.test_cli tests.test_plugin` passes
-4. `pnpm test:frontend` passes
-5. `python3 -m decky_secrets list` shows non-secret record fields only after successful master-password and PIN auth in the current invocation
-6. Decky Loader shows the `Decky Secrets` plugin in the sidebar
-7. opening the plugin renders the first-run, full-lock, session-lock, and accessible screens successfully
-8. when backend state is `session_locked`, the first visible UI is the numeric PIN pad, a correct PIN unlocks immediately on the final required digit, and a wrong PIN produces an unmistakable visible failure cue
-9. routine list browsing and record detail navigation do not echo secret values in list/detail payloads until an explicit reveal or copy action is taken
-10. the unlocked list keeps password copy as the default row action and exposes record detail through a dedicated trailing details affordance
-11. record detail keeps the password masked by default and re-masks when the press-and-hold reveal stops
-12. add, edit, and delete flows succeed through the backend validation/auth boundary and surface duplicate/missing-record failures without exposing secret values
-13. visible UI wording distinguishes session lock from restart or full relock so first-use Decky users are told that master password is required again after restart or full relock
-14. when backend state is `accessible`, using the record copy action shows copy confirmation plus the timeout cue without echoing the secret value
-15. the UI describes clipboard clearing as best effort rather than a guaranteed wipe
-16. fresh copy, reveal, edit, and delete actions are blocked when backend state is `decrypt_required` or `session_locked`
-17. CLI invalid usage, duplicate keys, missing keys, auth failures, and prompt-unavailable failures exit non-zero with clear non-secret messages
-18. a backend-created vault file remains encrypted at rest and is not readable as plaintext JSON secret data
-19. backend timeout and restart tests prove the session window expires back to `session_locked` and the full relock path returns to `decrypt_required`
+4. `python3 -m unittest tests.test_import_layout` proves `main.py` can import `decky_secrets` even when loaded from a file path outside the repo-root `sys.path` assumption
+5. `pnpm test:frontend` passes
+6. `python3 -m decky_secrets list` shows non-secret record fields only after successful master-password and PIN auth in the current invocation
+7. Decky Loader shows the `Decky Secrets` plugin in the sidebar
+8. opening the plugin renders the first-run, full-lock, session-lock, and accessible screens successfully
+9. when backend state is `session_locked`, the first visible UI is the numeric PIN pad, a correct PIN unlocks immediately on the final required digit, and a wrong PIN produces an unmistakable visible failure cue
+10. routine list browsing and record detail navigation do not echo secret values in list/detail payloads until an explicit reveal or copy action is taken
+11. the unlocked list keeps password copy as the default row action and exposes record detail through a dedicated trailing details affordance
+12. record detail keeps the password masked by default and re-masks when the press-and-hold reveal stops
+13. add, edit, and delete flows succeed through the backend validation/auth boundary and surface duplicate/missing-record failures without exposing secret values
+14. visible UI wording distinguishes session lock from restart or full relock so first-use Decky users are told that master password is required again after restart or full relock
+15. when backend state is `accessible`, using the record copy action shows copy confirmation plus the timeout cue without echoing the secret value
+16. the UI describes clipboard clearing as best effort rather than a guaranteed wipe
+17. fresh copy, reveal, edit, and delete actions are blocked when backend state is `decrypt_required` or `session_locked`
+18. CLI invalid usage, duplicate keys, missing keys, auth failures, and prompt-unavailable failures exit non-zero with clear non-secret messages
+19. a backend-created vault file remains encrypted at rest and is not readable as plaintext JSON secret data
+20. backend timeout and restart tests prove the session window expires back to `session_locked` and the full relock path returns to `decrypt_required`
 
 ## Product direction
 

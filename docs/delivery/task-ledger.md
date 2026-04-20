@@ -216,12 +216,12 @@ It is the sole persistence mechanism for task state across agent sessions.
 {
   "task": "ISSUE-7",
   "state": "needs_review",
-  "current_action": "Builder updated PR #13 after the rework pass, and QA plus Security re-review are now in progress.",
-  "next_action": "Await QA and Security callbacks for the updated PR #13, then route to Spec if both pass.",
-  "owner": "qa-decky-secrets",
+  "current_action": "PR #13 has qa-approved and security-approved, and Spec final review is now in progress.",
+  "next_action": "Await Spec callback for PR #13, then merge immediately if spec-satisfied is applied and required checks are passing.",
+  "owner": "spec-decky-secrets",
   "branch": "feat/issue-7-auth-backend",
   "pr": 13,
-  "expected_callback_at": "2026-04-20T09:20:00Z",
+  "expected_callback_at": "2026-04-20T08:30:00Z",
   "history": [
     {
       "at": "2026-04-20T06:40:07Z",
@@ -256,6 +256,11 @@ It is the sole persistence mechanism for task state across agent sessions.
     {
       "at": "2026-04-20T06:59:00Z",
       "action": "Builder updated PR #13 after rework; re-dispatched QA and Security for review",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T07:02:00Z",
+      "action": "QA and Security approvals are present on PR #13; dispatched Spec for final review",
       "by": "orchestrator-decky-secrets"
     }
   ]

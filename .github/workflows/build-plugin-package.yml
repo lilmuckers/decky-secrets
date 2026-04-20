@@ -1,0 +1,101 @@
+name: Build Plugin Package
+
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install frontend dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install backend dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Run backend tests
+        run: python -m unittest tests.test_import_layout tests.test_package_plugin tests.test_vault tests.test_auth tests.test_clipboard tests.test_cli tests.test_plugin
+
+      - name: Validate backend import and syntax
+        run: |
+          python -m py_compile main.py decky_secrets/vault.py decky_secrets/auth.py decky_secrets/clipboard.py decky_secrets/cli.py decky_secrets/__main__.py
+          python - <<'PY'
+          import importlib.util, os, sys, tempfile
+          from pathlib import Path
+          repo = Path.cwd()
+          main_py = repo / 'main.py'
+          with tempfile.TemporaryDirectory() as td:
+              stub = Path(td) / 'decky.py'
+              stub.write_text('class _Logger:\n    def info(self,*a,**k):\n        pass\nlogger=_Logger()\n', encoding='utf-8')
+              os.chdir(td)
+              sys.path = [td] + [p for p in sys.path if str(repo) not in p]
+              spec = importlib.util.spec_from_file_location('decky_plugin_main', main_py)
+              module = importlib.util.module_from_spec(spec)
+              sys.modules[spec.name] = module
+              spec.loader.exec_module(module)
+              print('IMPORT_OK')
+          PY
+
+      - name: Run frontend tests
+        run: pnpm test:frontend
+
+      - name: Build frontend bundle
+        run: pnpm build
+
+      - name: Package Decky plugin zip
+        run: pnpm package:plugin
+
+      - name: Show packaged contents
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          manifest = Path('build/package/decky-secrets-manifest.json')
+          print(manifest.read_text(encoding='utf-8'))
+          PY
+          python - <<'PY'
+          import zipfile
+          from pathlib import Path
+          zip_path = Path('build/package/decky-secrets.zip')
+          with zipfile.ZipFile(zip_path) as archive:
+              for name in archive.namelist():
+                  print(name)
+          PY
+
+      - name: Upload Decky plugin artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: decky-secrets-plugin-${{ github.sha }}
+          path: |
+            build/package/decky-secrets.zip
+            build/package/decky-secrets-manifest.json
+          if-no-files-found: error

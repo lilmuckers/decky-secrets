@@ -123,7 +123,24 @@ function Content() {
   }, []);
 
   useEffect(() => {
+    const handleForegroundReentry = () => {
+      void clipboardSession.recheckExpiry().catch(() => undefined);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        handleForegroundReentry();
+      }
+    };
+
+    window.addEventListener("focus", handleForegroundReentry);
+    window.addEventListener("pageshow", handleForegroundReentry);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
     return () => {
+      window.removeEventListener("focus", handleForegroundReentry);
+      window.removeEventListener("pageshow", handleForegroundReentry);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       clipboardSession.dispose();
     };
   }, [clipboardSession]);

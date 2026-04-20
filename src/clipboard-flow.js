@@ -13,9 +13,15 @@ export function buildCopyFeedback(recordName, seconds) {
   };
 }
 
-export function createClipboardSession({ writeText, schedule = setTimeout, clearScheduled = clearTimeout }) {
+export function createClipboardSession({
+  writeText,
+  schedule = setTimeout,
+  clearScheduled = clearTimeout,
+  now = Date.now,
+}) {
   let currentToken = 0;
   let pendingHandle = null;
+  let expiresAt = null;
 
   const cancelPending = () => {
     if (pendingHandle !== null) {
@@ -28,9 +34,20 @@ export function createClipboardSession({ writeText, schedule = setTimeout, clear
     if (token !== currentToken) {
       return false;
     }
+    expiresAt = null;
     await writeText("");
     pendingHandle = null;
     return true;
+  };
+
+  const clearIfExpired = async () => {
+    if (expiresAt === null) {
+      return false;
+    }
+    if (now() < expiresAt) {
+      return false;
+    }
+    return clearClipboardIfCurrent(currentToken);
   };
 
   return {
@@ -39,17 +56,27 @@ export function createClipboardSession({ writeText, schedule = setTimeout, clear
       const token = currentToken;
       cancelPending();
       await writeText(secret);
+      expiresAt = now() + timeoutSeconds * 1000;
       pendingHandle = schedule(() => {
-        void clearClipboardIfCurrent(token);
+        void clearIfExpired();
       }, timeoutSeconds * 1000);
+      return expiresAt;
     },
     async clearNow() {
       currentToken += 1;
+      expiresAt = null;
       cancelPending();
       await writeText("");
     },
+    async recheckExpiry() {
+      return clearIfExpired();
+    },
+    getExpiry() {
+      return expiresAt;
+    },
     dispose() {
       currentToken += 1;
+      expiresAt = null;
       cancelPending();
     },
   };

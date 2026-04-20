@@ -281,13 +281,13 @@ It is the sole persistence mechanism for task state across agent sessions.
 ```json
 {
   "task": "ISSUE-5",
-  "state": "needs_review",
-  "current_action": "QA approved PR #14 and Security review remains in progress.",
-  "next_action": "Await Security callback for PR #14, then route to Spec if Security also passes.",
-  "owner": "security-decky-secrets",
+  "state": "in_progress",
+  "current_action": "Security blocked PR #14 on suspend/resume timeout handling and Builder is reworking the existing PR.",
+  "next_action": "Await Builder callback for PR #14 fixes, then re-dispatch Security review and preserve QA approval if still valid.",
+  "owner": "builder-decky-secrets",
   "branch": "feat/issue-5-clipboard-copy",
   "pr": 14,
-  "expected_callback_at": "2026-04-20T09:30:00Z",
+  "expected_callback_at": "2026-04-20T09:00:00Z",
   "history": [
     {
       "at": "2026-04-20T07:08:00Z",
@@ -307,6 +307,11 @@ It is the sole persistence mechanism for task state across agent sessions.
     {
       "at": "2026-04-20T07:22:00Z",
       "action": "QA approved PR #14 and applied qa-approved; awaiting Security review",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T07:23:00Z",
+      "action": "Security blocked PR #14 on clipboard expiry handling across suspend/resume and Builder was re-dispatched for targeted rework",
       "by": "orchestrator-decky-secrets"
     }
   ]

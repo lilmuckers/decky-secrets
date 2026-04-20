@@ -5,7 +5,7 @@ import hashlib
 import json
 import os
 import secrets
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable, Literal
 
@@ -105,6 +105,7 @@ class VaultAuthManager:
         self._last_activity_at: datetime | None = None
         self._failures: list[FailureEvent] = []
         self._delete_failure_count = 0
+        self._session_key: bytearray | None = None
 
     def get_status(self) -> AuthStatus:
         self._apply_timeouts()
@@ -130,11 +131,11 @@ class VaultAuthManager:
             self._record_failure(factor="master_password", caller=caller)
             raise AuthenticationError("master password unlock failed") from exc
 
-        session_envelope = self._create_session_envelope(payload=payload, pin=payload.pin.value)
-        self._session_envelope = session_envelope
+        self._session_envelope = self._create_session_envelope(payload=payload, pin=payload.pin.value)
+        self._wipe_session_key()
         self._accessible_since = None
         self._last_activity_at = self.clock.now()
-        self._clear_failures()
+        self._clear_failures(reset_delete_counter=False)
         return self.get_status()
 
     def unlock_with_pin(self, *, pin: str, caller: CallerType = "internal") -> AuthStatus:
@@ -145,16 +146,20 @@ class VaultAuthManager:
                 raise AccessStateError("master password unlock required")
             raise AccessStateError("vault has not been initialized")
 
+        session_key = _derive_pin_key(pin=pin, pin_kdf=self._session_envelope.pin_kdf)
         try:
-            self._decrypt_session_payload(pin=pin)
+            self._decrypt_session_payload(session_key=session_key)
         except (VaultBlobError, InvalidTag) as exc:
+            _wipe_bytes(session_key)
             self._record_failure(factor="pin", caller=caller)
             raise AuthenticationError("PIN unlock failed") from exc
 
+        self._wipe_session_key()
+        self._session_key = session_key
         now = self.clock.now()
         self._accessible_since = now
         self._last_activity_at = now
-        self._clear_failures()
+        self._clear_failures(reset_delete_counter=False)
         return self.get_status()
 
     def authenticate_recovery_key(
@@ -170,7 +175,7 @@ class VaultAuthManager:
             self._record_failure(factor="recovery_key", caller=caller)
             raise AuthenticationError("recovery key authentication failed")
 
-        self._clear_failures()
+        self._clear_failures(reset_delete_counter=False)
         return True
 
     def access_vault(
@@ -180,11 +185,14 @@ class VaultAuthManager:
         caller: CallerType = "internal",
         operation: Callable[[VaultPayload], Any],
     ) -> Any:
+        del pin, caller
         self._apply_timeouts()
         if self._current_state() != "accessible":
             raise AccessStateError("vault access requires an active unlocked session")
+        if self._session_key is None:
+            raise AccessStateError("active session key is unavailable")
 
-        payload = self._decrypt_session_payload(pin=pin)
+        payload = self._decrypt_session_payload(session_key=self._session_key)
         try:
             result = operation(payload)
             refreshed_payload = VaultPayload.from_dict(payload.to_dict())
@@ -194,13 +202,13 @@ class VaultAuthManager:
             self._accessible_since = now
             return result
         finally:
-            payload_dict = payload.to_dict()
-            _wipe_mapping(payload_dict)
+            _wipe_mapping(payload.to_dict())
 
     def lock_to_session(self) -> AuthStatus:
         self._apply_timeouts()
         if self._session_envelope is None:
             return self.get_status()
+        self._wipe_session_key()
         self._accessible_since = None
         return self.get_status()
 
@@ -210,7 +218,7 @@ class VaultAuthManager:
 
     def record_restart(self) -> AuthStatus:
         self._discard_session_material()
-        self._clear_failures()
+        self._clear_failures(reset_delete_counter=False)
         return self.get_status()
 
     def _apply_timeouts(self) -> None:
@@ -225,6 +233,7 @@ class VaultAuthManager:
 
         session_deadline = self._session_access_deadline()
         if self._accessible_since is not None and session_deadline is not None and now >= session_deadline:
+            self._wipe_session_key()
             self._accessible_since = None
 
     def _current_state(self) -> VaultState:
@@ -252,27 +261,22 @@ class VaultAuthManager:
             pin_kdf=dict(payload.pin.kdf),
         )
 
-    def _decrypt_session_payload(self, *, pin: str | None) -> VaultPayload:
+    def _decrypt_session_payload(self, *, session_key: bytearray) -> VaultPayload:
         if self._session_envelope is None:
             raise AccessStateError("no active session envelope is available")
-        if pin is None:
-            raise AccessStateError("PIN is required for vault access")
 
-        key = _derive_pin_key(pin=pin, pin_kdf=self._session_envelope.pin_kdf)
         plaintext = bytearray()
         try:
-            plaintext_bytes = AESGCM(bytes(key)).decrypt(
+            plaintext_bytes = AESGCM(bytes(session_key)).decrypt(
                 base64.b64decode(self._session_envelope.nonce_b64.encode("ascii")),
                 base64.b64decode(self._session_envelope.ciphertext_b64.encode("ascii")),
                 None,
             )
             plaintext.extend(plaintext_bytes)
-            payload = VaultPayload.from_dict(json.loads(plaintext.decode("utf-8")))
-            return payload
+            return VaultPayload.from_dict(json.loads(plaintext.decode("utf-8")))
         except InvalidTag as exc:
             raise VaultBlobError("session unlock failed") from exc
         finally:
-            _wipe_bytes(key)
             _wipe_bytes(plaintext)
 
     def _record_failure(self, *, factor: AuthFactor, caller: CallerType) -> None:
@@ -283,7 +287,7 @@ class VaultAuthManager:
         if self.config.delete_on_failure and self._delete_failure_count >= self.config.delete_on_failure_threshold:
             self._destroy_vault_file()
             self._discard_session_material()
-            self._clear_failures()
+            self._clear_failures(reset_delete_counter=True)
             raise AuthenticationError("vault destroyed after repeated authentication failures")
 
     def _trim_failures(self, now: datetime) -> None:
@@ -310,9 +314,10 @@ class VaultAuthManager:
         if retry_at is not None:
             raise AuthenticationLockedError(retry_at=retry_at)
 
-    def _clear_failures(self) -> None:
+    def _clear_failures(self, *, reset_delete_counter: bool) -> None:
         self._failures.clear()
-        self._delete_failure_count = 0
+        if reset_delete_counter:
+            self._delete_failure_count = 0
 
     def _require_existing_vault(self) -> None:
         if not self.store.vault_path.exists():
@@ -329,10 +334,15 @@ class VaultAuthManager:
         return self._last_activity_at + timedelta(seconds=self.config.full_relock_timeout_seconds)
 
     def _discard_session_material(self) -> None:
-        if self._session_envelope is not None:
-            self._session_envelope = None
+        self._session_envelope = None
+        self._wipe_session_key()
         self._accessible_since = None
         self._last_activity_at = None
+
+    def _wipe_session_key(self) -> None:
+        if self._session_key is not None:
+            _wipe_bytes(self._session_key)
+            self._session_key = None
 
     def _destroy_vault_file(self) -> None:
         try:

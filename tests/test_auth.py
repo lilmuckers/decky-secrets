@@ -47,7 +47,7 @@ class VaultAuthManagerTests(unittest.TestCase):
         self.assertEqual(status.state, "accessible")
 
         record_count = self.manager.access_vault(
-            pin="1234",
+            pin=None,
             caller="ui",
             operation=lambda payload: len(payload.records),
         )
@@ -58,7 +58,7 @@ class VaultAuthManagerTests(unittest.TestCase):
         self.assertEqual(status.state, "session_locked")
 
         with self.assertRaises(AccessStateError):
-            self.manager.access_vault(pin="1234", caller="ui", operation=lambda payload: payload.records)
+            self.manager.access_vault(pin=None, caller="ui", operation=lambda payload: payload.records)
 
     def test_full_relock_requires_master_password_again(self) -> None:
         self.manager.unlock_with_password(master_password="correct horse battery staple", caller="ui")
@@ -100,22 +100,44 @@ class VaultAuthManagerTests(unittest.TestCase):
         status = self.manager.unlock_with_password(master_password="correct horse battery staple", caller="ui")
         self.assertEqual(status.state, "session_locked")
 
-    def test_delete_on_failure_can_destroy_vault(self) -> None:
+    def test_delete_on_failure_can_destroy_vault_after_combined_failures(self) -> None:
         destructive = VaultAuthManager(
             store=self.store,
             clock=self.clock,
             config=replace(AuthConfig(), delete_on_failure=True, delete_on_failure_threshold=3),
         )
 
-        for _ in range(2):
-            with self.assertRaises(AuthenticationError):
-                destructive.unlock_with_password(master_password="wrong password", caller="cli")
+        with self.assertRaises(AuthenticationError):
+            destructive.unlock_with_password(master_password="wrong password", caller="cli")
+
+        destructive.unlock_with_password(master_password="correct horse battery staple", caller="cli")
+        destructive.unlock_with_pin(pin="1234", caller="cli")
+
+        with self.assertRaises(AuthenticationError):
+            destructive.authenticate_recovery_key(
+                provided_recovery_key="WRONG-WRONG-WRONG-WRONG-WRONG-WRONG-WRONG-WRONG",
+                expected_recovery_key="ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ23-4567",
+                caller="cli",
+            )
 
         with self.assertRaises(AuthenticationError):
             destructive.unlock_with_password(master_password="wrong password", caller="cli")
 
         self.assertFalse(self.store.vault_path.exists())
         self.assertEqual(destructive.get_status().state, "uninitialized_vault")
+
+    def test_accessible_window_does_not_require_pin_resubmission(self) -> None:
+        self.manager.unlock_with_password(master_password="correct horse battery staple", caller="ui")
+        self.manager.unlock_with_pin(pin="1234", caller="ui")
+
+        result = self.manager.access_vault(
+            pin=None,
+            caller="ui",
+            operation=lambda payload: payload.vault.version,
+        )
+
+        self.assertEqual(result, 1)
+        self.assertEqual(self.manager.get_status().state, "accessible")
 
     def test_error_messages_do_not_echo_secrets(self) -> None:
         bad_password = "wrong-password-secret"

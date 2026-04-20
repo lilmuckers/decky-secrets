@@ -343,8 +343,8 @@ It is the sole persistence mechanism for task state across agent sessions.
 {
   "task": "ISSUE-8",
   "state": "needs_review",
-  "current_action": "Builder opened PR #15 for issue #8 and QA plus Security review are now in progress.",
-  "next_action": "Await QA and Security callbacks for PR #15, then route to Spec if both pass.",
+  "current_action": "Security approved PR #15 and QA review remains in progress.",
+  "next_action": "Await QA callback for PR #15, then route to Spec if QA also passes.",
   "owner": "qa-decky-secrets",
   "branch": "feat/issue-8-cli-vault-commands",
   "pr": 15,
@@ -363,6 +363,11 @@ It is the sole persistence mechanism for task state across agent sessions.
     {
       "at": "2026-04-20T10:08:00Z",
       "action": "Builder reported NEEDS_REVIEW with PR #15 for issue #8; dispatched QA and Security review",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T10:11:00Z",
+      "action": "Security approved PR #15 and applied security-approved; awaiting QA review",
       "by": "orchestrator-decky-secrets"
     }
   ]

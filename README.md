@@ -4,7 +4,7 @@ A Decky Loader plugin for Steam Deck / SteamOS that will eventually store user s
 
 ## Current status
 
-Issues #3, #4, #5, #7, #8, #9, and #17 establish the initial Decky plugin scaffold, the Python encrypted-vault persistence layer, the scoped clipboard copy flow, the backend lock/auth state model, the local CLI command surface, the first Decky record-management UI flows, and the packaged Decky backend import-layout fix for the plugin sandbox.
+Issues #3, #4, #5, #7, #8, #9, #17, and #20 establish the initial Decky plugin scaffold, the Python encrypted-vault persistence layer, the scoped clipboard copy flow, the backend lock/auth state model, the local CLI command surface, the first Decky record-management UI flows, the packaged Decky backend import-layout fix for the plugin sandbox, and GitHub Actions build/package automation.
 
 What exists now:
 - Decky plugin metadata in `plugin.json`
@@ -22,6 +22,7 @@ What exists now:
 - encrypted-at-rest vault creation and load support at `~/.decky-secrets/vault`
 - backend lock-state handling for `decrypt_required`, `session_locked`, and `accessible`
 - shared auth throttling and full-relock/session-timeout behavior for backend callers
+- a GitHub Actions workflow that builds the plugin and uploads a Decky Loader friendly zip artifact
 - unit tests for blob shape, permissions, decrypt, auth transitions, restart/full-lock behavior, throttling, clipboard copy gating, and CLI command behavior
 
 What is intentionally **not** implemented yet:
@@ -119,6 +120,32 @@ Typical layout on device:
 
 The bundled Python package directory must ship beside `main.py`. Decky Loader may import `main.py` from the plugin sandbox without first placing the plugin root on `sys.path`, so `main.py` now bootstraps its own plugin-root import path before importing `decky_secrets`.
 
+### GitHub Actions build/package automation
+
+The repository includes `.github/workflows/build-plugin-package.yml` to build the plugin from GitHub-hosted repository state and upload a workflow-visible artifact named `decky-secrets-plugin-<sha>`.
+
+The packaged zip is intended for Decky Loader installation/testing and currently includes:
+- `main.py`
+- `plugin.json`
+- `package.json`
+- `requirements.txt`
+- `decky_secrets/`
+- `dist/`
+
+The packaged zip intentionally excludes repository-only development files such as:
+- `tests/`
+- `docs/`
+- `.github/`
+- `node_modules/`
+- `.git/`
+- local workspace/framework notes and scaffolding
+
+You can build the same package locally with:
+
+```bash
+python3 scripts/package_plugin.py --repo-root . --out-dir build/package
+```
+
 If you are developing from another machine, `rsync` or `scp` the repository contents over after building.
 
 After copying the plugin files onto the device:
@@ -133,7 +160,7 @@ For the current scaffold plus persistence/auth/Decky UI slices, verify the follo
 
 1. `pnpm install` succeeds on a fresh checkout
 2. `pnpm build` produces `dist/index.js`
-3. `python3 -m unittest tests.test_vault tests.test_auth tests.test_clipboard tests.test_cli tests.test_plugin` passes
+3. `python3 -m unittest tests.test_import_layout tests.test_package_plugin tests.test_vault tests.test_auth tests.test_clipboard tests.test_cli tests.test_plugin` passes
 4. `python3 -m unittest tests.test_import_layout` proves `main.py` can import `decky_secrets` even when loaded from a file path outside the repo-root `sys.path` assumption
 5. `pnpm test:frontend` passes
 6. `python3 -m decky_secrets list` shows non-secret record fields only after successful master-password and PIN auth in the current invocation
@@ -151,6 +178,8 @@ For the current scaffold plus persistence/auth/Decky UI slices, verify the follo
 18. CLI invalid usage, duplicate keys, missing keys, auth failures, and prompt-unavailable failures exit non-zero with clear non-secret messages
 19. a backend-created vault file remains encrypted at rest and is not readable as plaintext JSON secret data
 20. backend timeout and restart tests prove the session window expires back to `session_locked` and the full relock path returns to `decrypt_required`
+21. `python3 scripts/package_plugin.py --repo-root . --out-dir build/package` produces `build/package/decky-secrets.zip` and `build/package/decky-secrets-manifest.json`
+22. the packaged zip includes only the documented Decky runtime files and excludes repository-only development directories
 
 ## Product direction
 

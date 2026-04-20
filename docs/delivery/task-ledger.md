@@ -281,13 +281,13 @@ It is the sole persistence mechanism for task state across agent sessions.
 ```json
 {
   "task": "ISSUE-5",
-  "state": "needs_review",
-  "current_action": "PR #14 has qa-approved and security-approved, and Spec final review is now in progress.",
-  "next_action": "Await Spec callback for PR #14, then merge immediately if spec-satisfied is applied and required checks are passing.",
-  "owner": "spec-decky-secrets",
+  "state": "done",
+  "current_action": "PR #14 merged and issue #5 completed.",
+  "next_action": "Use the merged clipboard contract as fixed shared behavior and ready issue #8 before the next Builder handoff.",
+  "owner": "orchestrator-decky-secrets",
   "branch": "feat/issue-5-clipboard-copy",
   "pr": 14,
-  "expected_callback_at": "2026-04-20T11:20:00Z",
+  "expected_callback_at": "2026-04-20T11:05:00Z",
   "history": [
     {
       "at": "2026-04-20T07:08:00Z",
@@ -322,6 +322,35 @@ It is the sole persistence mechanism for task state across agent sessions.
     {
       "at": "2026-04-20T09:52:00Z",
       "action": "Security approved PR #14 and applied security-approved; dispatched Spec for final review",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T09:56:00Z",
+      "action": "Spec applied spec-satisfied on PR #14; orchestrator-approved applied and merge execution started",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-20T09:57:47Z",
+      "action": "Merged PR #14 with merge commit 7df0eaf29a2c4b923d80ddae529d29157f3a7cdb and issue #5 completed",
+      "by": "orchestrator-decky-secrets"
+    }
+  ]
+}
+```
+## Task ISSUE-8 - Implement local CLI vault management commands
+
+```json
+{
+  "task": "ISSUE-8",
+  "state": "in_progress",
+  "current_action": "Spec is readying issue #8 for build handoff after validator failures on non-security readiness sections.",
+  "next_action": "Await Spec callback, rerun ready validator, then dispatch Builder if the issue passes.",
+  "owner": "spec-decky-secrets",
+  "expected_callback_at": "2026-04-20T11:20:00Z",
+  "history": [
+    {
+      "at": "2026-04-20T09:59:00Z",
+      "action": "Merged PR #14 completed issue #5; issue #8 was the next lowest-numbered ready-for-build issue, but validator failures routed it to Spec for readiness repair before Builder handoff",
       "by": "orchestrator-decky-secrets"
     }
   ]

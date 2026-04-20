@@ -4,23 +4,24 @@ A Decky Loader plugin for Steam Deck / SteamOS that will eventually store user s
 
 ## Current status
 
-Issues #3, #4, and #7 establish the initial Decky plugin scaffold, the Python encrypted-vault persistence layer, and the backend lock/auth state model.
+Issues #3, #4, #5, and #7 establish the initial Decky plugin scaffold, the Python encrypted-vault persistence layer, the scoped clipboard copy flow, and the backend lock/auth state model.
 
 What exists now:
 - Decky plugin metadata in `plugin.json`
-- a TypeScript frontend scaffold in `src/index.tsx`
+- a TypeScript frontend panel in `src/index.tsx`
 - a Python backend entrypoint in `main.py`
 - a testable Python vault module in `decky_secrets/vault.py`
+- a testable Python clipboard service in `decky_secrets/clipboard.py`
 - Rollup and TypeScript build config for the current Decky template toolchain
-- a placeholder Decky panel that loads and shows backend status
+- an unlocked record list slice that performs password copy as the default action
+- immediate copy confirmation with a visible clipboard timeout cue and best-effort wording
 - encrypted-at-rest vault creation and load support at `~/.decky-secrets/vault`
 - backend lock-state handling for `decrypt_required`, `session_locked`, and `accessible`
 - shared auth throttling and full-relock/session-timeout behavior for backend callers
-- unit tests for blob shape, permissions, decrypt, auth transitions, restart/full-lock behavior, and throttling
+- unit tests for blob shape, permissions, decrypt, auth transitions, restart/full-lock behavior, throttling, and clipboard copy gating
 
 What is intentionally **not** implemented yet:
-- clipboard copy or wipe behavior
-- Decky record-management UI flows
+- broader record-management UI, reveal flows, or edit/delete implementations
 - biometric unlock
 - CLI ingest or broader record-management commands
 
@@ -29,7 +30,7 @@ What is intentionally **not** implemented yet:
 ```text
 .
 ├── backend/              # reserved for future backend build artifacts/source
-├── decky_secrets/        # Python vault persistence, lock-state, and auth modules
+├── decky_secrets/        # Python vault persistence, lock-state, auth, and clipboard modules
 ├── docs/                 # spec, architecture, decisions, delivery state
 ├── main.py               # live Decky Python backend entrypoint
 ├── package.json          # frontend toolchain config
@@ -112,12 +113,15 @@ For the current scaffold plus persistence/auth slices, verify the following:
 
 1. `pnpm install` succeeds on a fresh checkout
 2. `pnpm build` produces `dist/index.js`
-3. `python3 -m unittest tests.test_vault tests.test_auth` passes
-4. Decky Loader shows the `Decky Secrets` plugin in the sidebar
-5. opening the plugin renders the placeholder panel successfully
-6. the panel shows `uninitialized_vault`, `decrypt_required`, `session_locked`, or `accessible` based on backend auth state
-7. a backend-created vault file remains encrypted at rest and is not readable as plaintext JSON secret data
-8. backend timeout and restart tests prove the session window expires back to `session_locked` and the full relock path returns to `decrypt_required`
+3. `python3 -m unittest tests.test_vault tests.test_auth tests.test_clipboard` passes
+4. `pnpm test:frontend` passes
+5. Decky Loader shows the `Decky Secrets` plugin in the sidebar
+6. opening the plugin renders the panel successfully
+7. when backend state is `accessible`, using the record copy action shows copy confirmation plus the timeout cue without echoing the secret value
+8. the UI describes clipboard clearing as best effort rather than a guaranteed wipe
+9. fresh copy actions are blocked when backend state is `decrypt_required` or `session_locked`
+10. a backend-created vault file remains encrypted at rest and is not readable as plaintext JSON secret data
+11. backend timeout and restart tests prove the session window expires back to `session_locked` and the full relock path returns to `decrypt_required`
 
 ## Product direction
 
@@ -127,6 +131,10 @@ The target MVP remains:
 - required PIN-gated session access
 - Decky UI for browsing and managing records
 - local CLI support for technical users
+
+The clipboard clear timeout defaults to 30 seconds and can be adjusted for local testing with the environment variable `DECKY_SECRETS_CLIPBOARD_CLEAR_SECONDS`.
+
+Clipboard clearing remains best effort only. It does not claim to wipe clipboard history tools, pasted destinations, or crash/restart remnants.
 
 For the authoritative product and architecture definition, see:
 - `SPEC.md`

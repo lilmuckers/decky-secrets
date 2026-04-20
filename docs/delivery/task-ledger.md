@@ -36,6 +36,7 @@ It is the sole persistence mechanism for task state across agent sessions.
 ## Entry Template
 
 ```
+
 ## Task TASK-ID - Short title
 
 ```json
@@ -57,4 +58,174 @@ It is the sole persistence mechanism for task state across agent sessions.
   ]
 }
 ```
+```
+## Task ISSUE-3 - Create initial Decky Loader plugin skeleton
+
+```json
+{
+  "task": "ISSUE-3",
+  "state": "done",
+  "current_action": "PR #10 merged and issue #3 completed.",
+  "next_action": "No further action on issue #3. Identify or prepare the next ready issue before dispatching Builder again.",
+  "owner": "orchestrator-decky-secrets",
+  "expected_callback_at": "2026-04-19T11:45:00Z",
+  "history": [
+    {
+      "at": "2026-04-19T09:32:01Z",
+      "action": "Dispatched issue #3 to Builder after readiness validation passed",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-19T09:38:52Z",
+      "action": "Builder reported NEEDS_REVIEW with PR #10 for issue #3",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-19T09:42:30Z",
+      "action": "QA reported DONE and applied qa-approved for PR #10",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-19T09:45:14Z",
+      "action": "Spec reported DONE and applied spec-satisfied for PR #10",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-19T09:46:20Z",
+      "action": "Merged PR #10 and completed issue #3",
+      "by": "orchestrator-decky-secrets"
+    }
+  ]
+}
+```
+## Task ISSUE-6 - Threat-model clipboard, lock-state, and local secret exposure risks
+
+```json
+{
+  "task": "ISSUE-6",
+  "state": "done",
+  "current_action": "PR #11 merged and issue #6 completed.",
+  "next_action": "Use the new security-boundary decision doc and aligned architecture/assumptions pages as the durable reference for issues #4, #5, #7, and #9.",
+  "owner": "orchestrator-decky-secrets",
+  "expected_callback_at": "2026-04-19T21:20:00Z",
+  "history": [
+    {
+      "at": "2026-04-19T18:51:00Z",
+      "action": "Dispatched issue #6 to Security for security-boundary definition",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-19T18:59:22Z",
+      "action": "Security reported NEEDS_REVIEW with PR #11 for issue #6",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-19T19:00:39Z",
+      "action": "Spec reported DONE and applied spec-satisfied for PR #11",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-19T19:01:26Z",
+      "action": "Dispatched PR #11 to QA after merge gate reported missing qa-approved",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-19T19:03:19Z",
+      "action": "QA reported DONE and applied qa-approved for PR #11",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-19T19:03:50Z",
+      "action": "Merged PR #11 and completed issue #6",
+      "by": "orchestrator-decky-secrets"
+    }
+  ]
+}
+```
+## Task TASK-2026-04-19-issue-tightening - Tighten issues #4, #5, #7, and #9 against merged security boundaries
+
+```json
+{
+  "task": "TASK-2026-04-19-issue-tightening",
+  "state": "done",
+  "current_action": "Spec completed the issue-tightening pass for issues #4, #5, #7, and #9 against the merged local secret exposure decision.",
+  "next_action": "No further action needed on the tightening task; continue normal Builder dispatch with issue #7 next.",
+  "owner": "orchestrator-decky-secrets",
+  "expected_callback_at": "2026-04-19T21:30:00Z",
+  "history": [
+    {
+      "at": "2026-04-19T19:13:50Z",
+      "action": "Dispatched Spec to tighten implementation issues after issue #6 security-boundary merge",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-19T22:12:07Z",
+      "action": "Spec reported DONE for the issue-tightening watchdog task",
+      "by": "orchestrator-decky-secrets"
+    }
+  ]
+}
+```
+## Task ISSUE-4 - Implement Python vault persistence and cryptography layer
+
+```json
+{
+  "task": "ISSUE-4",
+  "state": "done",
+  "current_action": "PR #12 merged and issue #4 completed.",
+  "next_action": "Continue planned sequencing with issue #7 as the next backend slice on top of the merged persistence layer.",
+  "owner": "orchestrator-decky-secrets",
+  "expected_callback_at": "2026-04-19T23:20:00Z",
+  "history": [
+    {
+      "at": "2026-04-19T21:18:52Z",
+      "action": "Resumed normal flow and dispatched issue #4 to Builder",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-19T21:25:07Z",
+      "action": "Builder reported NEEDS_REVIEW with PR #12 for issue #4",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-19T21:26:55Z",
+      "action": "Reset security workspace to main after stale-branch blocker and re-dispatched PR #12 security review",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-19T21:29:07Z",
+      "action": "QA and Security approved PR #12; dispatched to Spec for final review",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-19T21:30:41Z",
+      "action": "Spec reported DONE and applied spec-satisfied for PR #12",
+      "by": "orchestrator-decky-secrets"
+    },
+    {
+      "at": "2026-04-19T21:31:29Z",
+      "action": "Merged PR #12 and completed issue #4",
+      "by": "orchestrator-decky-secrets"
+    }
+  ]
+}
+```
+## Task ISSUE-7 - Implement Python lock-state and authentication backend
+
+```json
+{
+  "task": "ISSUE-7",
+  "state": "in_progress",
+  "current_action": "Security is readying issue #7 for build handoff after validator failures on security/readiness sections.",
+  "next_action": "Await Security callback, rerun ready validator, then dispatch Builder if the issue passes.",
+  "owner": "security-decky-secrets",
+  "expected_callback_at": "2026-04-20T08:30:00Z",
+  "history": [
+    {
+      "at": "2026-04-20T06:40:07Z",
+      "action": "Dispatched Security to repair issue #7 readiness gaps before Builder handoff",
+      "by": "orchestrator-decky-secrets"
+    }
+  ]
+}
 ```

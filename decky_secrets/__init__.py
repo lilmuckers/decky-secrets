@@ -17,6 +17,7 @@ from .auth import (
     VaultAuthManager,
     VaultState,
 )
+from .cli import SecretPrompter, VaultCliApp, build_parser, main
 from .clipboard import (
     BEST_EFFORT_CLEAR_DISCLAIMER,
     CLIPBOARD_TIMEOUT_ENV_VAR,
@@ -46,6 +47,8 @@ from .vault import (
 
 __all__ = [
     "BEST_EFFORT_CLEAR_DISCLAIMER",
+    "SecretPrompter",
+    "VaultCliApp",
     "CLIPBOARD_TIMEOUT_ENV_VAR",
     "CURRENT_BLOB_VERSION",
     "CURRENT_KDF_ALGORITHM",
@@ -80,6 +83,8 @@ __all__ = [
     "VaultPayloadVault",
     "VaultRecord",
     "VaultState",
+    "build_parser",
     "create_recovery_key",
+    "main",
     "resolve_clipboard_clear_seconds",
 ]

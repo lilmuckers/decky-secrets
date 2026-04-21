@@ -133,6 +133,7 @@ Some items below are settled decisions for the MVP. Others are explicit open ass
 - The secure backend must not ship with bundled binary crypto artifacts that require an OpenSSL ABI unavailable in the target Steam Deck runtime.
 - Platform-specific packaging is acceptable only if it preserves the approved crypto profile and proves compatible on a real device.
 - If the current dependency stack cannot satisfy those constraints cleanly, reducing or replacing the incompatible runtime dependency surface is preferred over shipping a weaker security posture.
+- The current compatible backend strategy is to keep PBKDF2-SHA-256 in Python `hashlib` and use `pycryptodomex` for AES-256-GCM so the shipped secure path is not coupled to the failing `cryptography` OpenSSL ABI expectation.
 - Reason: the observed `cryptography` import failure was a packaging/runtime mismatch, not evidence that the security baseline should be weakened.
 
 ### D-021: Build automation should produce a Decky Loader friendly plugin zip from GitHub

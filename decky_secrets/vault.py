@@ -11,8 +11,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from cryptography.exceptions import InvalidTag
-from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from .crypto import AuthTagError, encrypt_aes_gcm, decrypt_aes_gcm
 
 VAULT_DIR_NAME = ".decky-secrets"
 VAULT_FILE_NAME = "vault"
@@ -132,7 +131,7 @@ class VaultFileStore:
         key = _derive_key(master_password=master_password, salt=salt, iterations=CURRENT_KDF_ITERATIONS)
         plaintext_buffer = bytearray(json.dumps(payload.to_dict(), sort_keys=True, separators=(",", ":")).encode("utf-8"))
         try:
-            ciphertext = AESGCM(key).encrypt(nonce, bytes(plaintext_buffer), None)
+            ciphertext = encrypt_aes_gcm(key=key, nonce=nonce, plaintext=bytes(plaintext_buffer))
         finally:
             _wipe_bytes(plaintext_buffer)
             _wipe_bytes(key)
@@ -194,8 +193,8 @@ class VaultFileStore:
 
         key = _derive_key(master_password=master_password, salt=salt, iterations=iterations)
         try:
-            return AESGCM(bytes(key)).decrypt(nonce, ciphertext, None)
-        except InvalidTag as exc:
+            return decrypt_aes_gcm(key=key, nonce=nonce, ciphertext_and_tag=ciphertext)
+        except AuthTagError as exc:
             raise VaultBlobError("vault decryption failed") from exc
         finally:
             _wipe_bytes(key)

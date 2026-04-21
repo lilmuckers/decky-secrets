@@ -14,7 +14,7 @@ The MVP vault security baseline is:
    - Store the vault as a single versioned encrypted blob at `~/.decky-secrets/vault`.
    - Encrypt with **AES-256-GCM**.
    - Use Python `hashlib.pbkdf2_hmac` for PBKDF2-SHA-256 derivation.
-   - Use the Python `cryptography` library for AES-GCM operations.
+   - Use a vetted Python AES-GCM implementation that preserves the approved AES-256-GCM profile on the target Steam Deck runtime. The shipped compatible path may change implementation library when required for runtime compatibility.
    - Use Python `secrets` for random salt, nonce, and recovery-key generation.
    - Derive the master-password key with **PBKDF2-SHA-256**, **600,000 iterations**, and a random salt.
    - Use a fresh standard **96-bit AES-GCM nonce** for each encryption operation.

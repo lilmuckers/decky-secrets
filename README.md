@@ -11,6 +11,7 @@ What exists now:
 - a TypeScript frontend panel in `src/index.tsx`
 - a Python backend entrypoint in `main.py`
 - a backend bootstrap that places the plugin root on `sys.path` before importing bundled Python modules in the Decky sandbox
+- a Steam Deck compatible AES-256-GCM backend path using `pycryptodomex` to avoid the incompatible `cryptography` OpenSSL ABI dependency that failed on device
 - a testable Python vault module in `decky_secrets/vault.py`
 - a testable Python clipboard service in `decky_secrets/clipboard.py`
 - a local Python CLI in `decky_secrets/cli.py` with `add`, `list`, `rm`, and `update`
@@ -57,7 +58,7 @@ For the current toolchain, install:
 - Node.js 16.14 or newer
 - `pnpm` 9.x
 - Python 3.11 or newer
-- the Python `cryptography` package from `requirements.txt`
+- the Python `pycryptodomex` package from `requirements.txt`
 - Decky Loader on the target Steam Deck / SteamOS device
 
 Example:
@@ -160,7 +161,7 @@ For the current scaffold plus persistence/auth/Decky UI slices, verify the follo
 
 1. `pnpm install` succeeds on a fresh checkout
 2. `pnpm build` produces `dist/index.js`
-3. `python3 -m unittest tests.test_import_layout tests.test_package_plugin tests.test_vault tests.test_auth tests.test_clipboard tests.test_cli tests.test_plugin` passes
+3. `python3 -m unittest tests.test_import_layout tests.test_crypto tests.test_package_plugin tests.test_vault tests.test_auth tests.test_clipboard tests.test_cli tests.test_plugin` passes
 4. `python3 -m unittest tests.test_import_layout` proves `main.py` can import `decky_secrets` even when loaded from a file path outside the repo-root `sys.path` assumption
 5. `pnpm test:frontend` passes
 6. `python3 -m decky_secrets list` shows non-secret record fields only after successful master-password and PIN auth in the current invocation

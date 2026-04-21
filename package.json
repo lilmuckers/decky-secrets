@@ -7,6 +7,7 @@
   "scripts": {
     "build": "rollup -c",
     "watch": "rollup -c -w",
+    "package:plugin": "python3 scripts/package_plugin.py --repo-root . --out-dir build/package",
     "test:frontend": "node --test tests/clipboard-flow.test.mjs tests/ui-flow.test.mjs tests/ui-contract.test.mjs"
   },
   "devDependencies": {
